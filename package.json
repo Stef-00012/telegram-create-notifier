@@ -1,0 +1,23 @@
+{
+  "scripts": {
+    "db:setup": "npm run db:generate && npm run db:migrate",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"start": "bun run src/bot.ts"
+  },
+  "dependencies": {
+    "@grammyjs/auto-thread": "github:grammyjs/auto-thread",
+    "@libsql/client": "^0.15.7",
+    "deno2node": "^1.15.0",
+    "drizzle-orm": "^0.43.1",
+    "grammy": "^1.36.1"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.13",
+    "drizzle-kit": "^0.31.1",
+    "typescript": "^5.8.3"
+  },
+  "trustedDependencies": [
+    "@grammyjs/auto-thread"
+  ]
+}
