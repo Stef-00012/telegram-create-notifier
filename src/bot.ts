@@ -3,6 +3,7 @@ import { config } from "$config";
 
 import { Bot } from "grammy";
 import { autoThread } from "@grammyjs/auto-thread";
+import WebSocket from "ws";
 
 import db from "@/db/db";
 import { eq } from "drizzle-orm";
@@ -10,11 +11,14 @@ import { chats as chatsSchema } from "@/db/schemas/chats";
 
 import {
 	type CreateMessage,
+	type PingMessage,
+	type PongMessage,
 	type UpdateMessage,
 	WSEvents,
 } from "@/types/addonsWS";
 
 const socket = new WebSocket("wss://create-addons.stefdp.com/ws");
+// const socket = new WebSocket("ws://localhost:3000/ws");
 
 const bot = new Bot(config.token);
 bot.use(autoThread());
@@ -96,64 +100,77 @@ bot.command("toggle", async (ctx) => {
 	);
 });
 
-socket.onopen = () => {
+socket.on("open", () => {
 	console.log("Connesso al WebSocket per gli addon della create");
-};
+})
 
-socket.onclose = (event) => {
+socket.on("close", (code, reason) => {
 	console.log(
-		"Disconnesso dal WebSocket per gli addon della create:",
-		event.code,
-		event.reason,
+		`Disconnesso dal WebSocket per gli addon della create:\n - Code: ${code}\n - Reason: ${reason}`,
 	);
-};
+})
 
-socket.onerror = (error) => {
+socket.on("error", (error) => {
 	console.error("Errore del WebSocket:", error);
-};
+})
 
-socket.onmessage = async (event) => {
+socket.on("message", async (data) => {
+	const message = JSON.parse(data.toString()) as
+		| CreateMessage
+		| UpdateMessage
+		| PingMessage;
+
+	if (message.type === WSEvents.PING) {
+		const pong: PongMessage = {
+			type: WSEvents.PONG,
+		};
+
+		socket.send(JSON.stringify(pong));
+	}
+
 	const chats = await db.query.chats.findMany();
 
-	console.log(event.data)
-
-	const message = JSON.parse(event.data as string) as
-		| CreateMessage
-		| UpdateMessage;
-
 	if (message.type === WSEvents.CREATE) {
+		console.log(data)
 		for (const addon of message.data) {
 			const msg = `Nuovo addon aggiunto: ${addon.name} (https://modrinth.com/mod/${addon.slug})`;
 
-		for (const chat of chats) {
-			if (chat.topicId)
-				return await bot.api.sendMessage(chat.chatId, msg, {
-					message_thread_id: Number.parseInt(chat.topicId),
-				});
+			for (const chat of chats) {
+				if (chat.topicId) {
+					await bot.api.sendMessage(chat.chatId, msg, {
+						message_thread_id: Number.parseInt(chat.topicId),
+					});
 
-			return await bot.api.sendMessage(chat.chatId, msg);
-		}
+					continue;
+				}
+
+				await bot.api.sendMessage(chat.chatId, msg);
+			}
 		}
 	}
 
 	if (message.type === WSEvents.UPDATE) {
+		console.log(data)
 		for (const addon of message.data) {
-			let msg = `Addon aggiornato: (https://modrinth.com/mod/${addon.slug})\n`;
+			let msg = `Addon aggiornato: ${addon.name} (https://modrinth.com/mod/${addon.slug})\n`;
 
-		for (const key in addon.changes) {
-			msg += `\n${key}: ${addon.changes[key as keyof typeof addon.changes].old} => ${key}: ${addon.changes[key as keyof typeof addon.changes].new}`;
-		}
+			for (const key in addon.changes) {
+				msg += `\n${key}: ${addon.changes[key as keyof typeof addon.changes].old} => ${key}: ${addon.changes[key as keyof typeof addon.changes].new}`;
+			}
 
-		for (const chat of chats) {
-			if (chat.topicId)
-				return await bot.api.sendMessage(chat.chatId, msg, {
-					message_thread_id: Number.parseInt(chat.topicId),
-				});
+			for (const chat of chats) {
+				if (chat.topicId) {
+					await bot.api.sendMessage(chat.chatId, msg, {
+						message_thread_id: Number.parseInt(chat.topicId),
+					});
 
-			return await bot.api.sendMessage(chat.chatId, msg);
-		}
+					continue;
+				}
+
+				await bot.api.sendMessage(chat.chatId, msg);
+			}
 		}
 	}
-};
+})
 
 bot.start();

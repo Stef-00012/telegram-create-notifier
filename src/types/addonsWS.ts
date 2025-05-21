@@ -1,14 +1,24 @@
 export enum WSEvents {
-	CREATE = 1, // receive only
-	UPDATE = 2, // receive only
-	COMMAND = 3, // send only
-	COMMAND_RESPONSE = 4, // receive only
-	COMMAND_ERROR = 5, // receive only
+	PING = 0, // server to client only
+	PONG = 1, // client to server only
+	CREATE = 2, // server to client only
+	UPDATE = 3, // server to client only
+	COMMAND = 4, // client to server only
+	COMMAND_RESPONSE = 5, // server to client only
+	COMMAND_ERROR = 6, // server to client only
 }
 
 export interface WSmessage {
 	data: unknown;
 	type: WSEvents;
+}
+
+export interface PingMessage extends Omit<WSmessage, "data"> {
+	type: WSEvents.PING;
+}
+
+export interface PongMessage extends Omit<WSmessage, "data"> {
+	type: WSEvents.PONG;
 }
 
 export interface CreateMessage extends WSmessage {
@@ -26,6 +36,7 @@ export interface UpdateMessage extends WSmessage {
 	data: {
 		slug: WSAddon["slug"];
 		platform: WSAddon["platform"];
+		name: WSAddon["name"];
 		changes: Record<WSAddonKeys, UpdateMessageValues>;
 	}[];
 }
