@@ -6,7 +6,13 @@ import { autoThread } from "@grammyjs/auto-thread";
 
 import db from "@/db/db";
 import { eq } from "drizzle-orm";
-import { chats as chatsSchema } from "./db/schemas/chats";
+import { chats as chatsSchema } from "@/db/schemas/chats";
+
+import {
+    type CreateMessage,
+    type UpdateMessage,
+    WSEvents
+} from "@/types/addonsWS";
 
 const socket = new WebSocket("wss://create-addons.stefdp.com/ws");
 
@@ -102,10 +108,38 @@ socket.onerror = (error) => {
 	console.error("Errore del WebSocket:", error);
 };
 
-socket.onmessage = (event) => {
-	const data = JSON.parse(event.data as string);
+socket.onmessage = async (event) => {
+    const chats = await db.query.chats.findMany()
+    
+	const message = JSON.parse(event.data as string) as CreateMessage | UpdateMessage;
 
-	console.log(JSON.stringify(data, null, 4));
+	if (message.type === WSEvents.CREATE) {
+	    const msg = `Nuovo addon aggiunto: ${message.data.name} (https://modrinth.com/mod/${message.data.slug})`
+	    
+	    for (const chat of chats) {
+	        if (chat.topicId) return await bot.api.sendMessage(chat.chatId, msg, {
+	            message_thread_id: chat.topicId
+	        })
+	        
+	        return await bot.api.sendMessage(chat.chatId, msg)
+	    }
+	}
+	
+	if (message.type === WSEvents.UPDATE) {
+	    let msg = `Addon aggiornato: (https://modrinth.com/mod/${message.data.slug})\n`
+	    
+	    for (const key in msg.data.changes) {
+	        msg += `\n${key}: ${msg.data.changes[key].old} => ${key}: ${msg.data.changes[key].new}`
+	    }
+	    
+	    for (const chat of chats) {
+	        if (chat.topicId) return await bot.api.sendMessage(chat.chatId, msg, {
+	            message_thread_id: chat.topicId
+	        })
+	        
+	        return await bot.api.sendMessage(chat.chatId, msg)
+	    }
+	}
 };
 
 bot.start();
