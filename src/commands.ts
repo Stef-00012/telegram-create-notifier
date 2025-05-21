@@ -9,9 +9,12 @@ export const commands: BotCommand[] = [
 	// 	command: "unsetcanale",
 	// 	description: "Setta il canale in cui mandare le notifiche delle mod",
 	// },
+	// {
+	// 	command: "toggle",
+	// 	description: "Abilita o disabilita le notifiche per la chat",
+	// },
 	{
-		command: "toggle",
-		description: "Abilita o disabilita le notifiche per la chat",
-	},
-
+		command: "impostazioni",
+		description: "Gestisci le impostazioni del bot"
+	}
 ];
