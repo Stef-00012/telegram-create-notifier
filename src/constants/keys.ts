@@ -50,8 +50,6 @@ export const settingKeyNames: Partial<Record<WSAddonKeys, string>> = {
     slug: keyNames.slug,
     versions: keyNames.versions,
     clientSide: keyNames.clientSide,
-    created: keyNames.created ,
-    modified: keyNames.modified,
     color: keyNames.color,
     license: keyNames.license,
     serverSide: keyNames.serverSide,
