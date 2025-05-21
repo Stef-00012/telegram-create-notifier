@@ -2,8 +2,9 @@ node_modules
 config.ts
 /biome.json
 tmp
-/data
+/data/*.db
 bun.lockb
 .env*
 drizzle/
 migrations/
+*.zip

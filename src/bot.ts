@@ -322,6 +322,8 @@ socket.on("message", async (data) => {
 			if (!chat.enabled || !chat.events.includes("update")) continue;
 
 			for (const addon of data) {
+				if (Object.keys(addon.changes).every((key) => !chat.filteredKeys.includes(key as keyof WSAddon))) continue;
+
 				const addonUrl = `https://modrinth.com/mod/${addon.slug}`;
 
 				const addonUrlButton = new InlineKeyboard()
