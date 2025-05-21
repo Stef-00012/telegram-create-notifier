@@ -9,9 +9,9 @@ import { eq } from "drizzle-orm";
 import { chats as chatsSchema } from "@/db/schemas/chats";
 
 import {
-    type CreateMessage,
-    type UpdateMessage,
-    WSEvents
+	type CreateMessage,
+	type UpdateMessage,
+	WSEvents,
 } from "@/types/addonsWS";
 
 const socket = new WebSocket("wss://create-addons.stefdp.com/ws");
@@ -101,7 +101,11 @@ socket.onopen = () => {
 };
 
 socket.onclose = (event) => {
-	console.log("Disconnesso dal WebSocket per gli addon della create:", event.code, event.reason);
+	console.log(
+		"Disconnesso dal WebSocket per gli addon della create:",
+		event.code,
+		event.reason,
+	);
 };
 
 socket.onerror = (error) => {
@@ -109,36 +113,46 @@ socket.onerror = (error) => {
 };
 
 socket.onmessage = async (event) => {
-    const chats = await db.query.chats.findMany()
-    
-	const message = JSON.parse(event.data as string) as CreateMessage | UpdateMessage;
+	const chats = await db.query.chats.findMany();
+
+	console.log(event.data)
+
+	const message = JSON.parse(event.data as string) as
+		| CreateMessage
+		| UpdateMessage;
 
 	if (message.type === WSEvents.CREATE) {
-	    const msg = `Nuovo addon aggiunto: ${message.data.name} (https://modrinth.com/mod/${message.data.slug})`
-	    
-	    for (const chat of chats) {
-	        if (chat.topicId) return await bot.api.sendMessage(chat.chatId, msg, {
-	            message_thread_id: chat.topicId
-	        })
-	        
-	        return await bot.api.sendMessage(chat.chatId, msg)
-	    }
+		for (const addon of message.data) {
+			const msg = `Nuovo addon aggiunto: ${addon.name} (https://modrinth.com/mod/${addon.slug})`;
+
+		for (const chat of chats) {
+			if (chat.topicId)
+				return await bot.api.sendMessage(chat.chatId, msg, {
+					message_thread_id: Number.parseInt(chat.topicId),
+				});
+
+			return await bot.api.sendMessage(chat.chatId, msg);
+		}
+		}
 	}
-	
+
 	if (message.type === WSEvents.UPDATE) {
-	    let msg = `Addon aggiornato: (https://modrinth.com/mod/${message.data.slug})\n`
-	    
-	    for (const key in msg.data.changes) {
-	        msg += `\n${key}: ${msg.data.changes[key].old} => ${key}: ${msg.data.changes[key].new}`
-	    }
-	    
-	    for (const chat of chats) {
-	        if (chat.topicId) return await bot.api.sendMessage(chat.chatId, msg, {
-	            message_thread_id: chat.topicId
-	        })
-	        
-	        return await bot.api.sendMessage(chat.chatId, msg)
-	    }
+		for (const addon of message.data) {
+			let msg = `Addon aggiornato: (https://modrinth.com/mod/${addon.slug})\n`;
+
+		for (const key in addon.changes) {
+			msg += `\n${key}: ${addon.changes[key as keyof typeof addon.changes].old} => ${key}: ${addon.changes[key as keyof typeof addon.changes].new}`;
+		}
+
+		for (const chat of chats) {
+			if (chat.topicId)
+				return await bot.api.sendMessage(chat.chatId, msg, {
+					message_thread_id: Number.parseInt(chat.topicId),
+				});
+
+			return await bot.api.sendMessage(chat.chatId, msg);
+		}
+		}
 	}
 };
 
