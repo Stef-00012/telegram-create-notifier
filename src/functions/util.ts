@@ -15,15 +15,15 @@ export function compareArrays<T>(oldArray: T[], newArray: T[]): Result<T> {
 export async function adminOnly(ctx: Context) {
 	const author = await ctx.getAuthor();
 
-	if (!ctx.config.ownerIds.includes(ctx.from?.id as number)) {
-		if (
-			ctx.chat?.type !== "private" &&
-			["creator", "administrator"].includes(author.status)
-		)
-			return false;
-	}
+	if (ctx.config.ownerIds.includes(ctx.from?.id as number)) return true;
 
-	return true;
+	if (
+		ctx.chat?.type !== "private" &&
+		["creator", "administrator"].includes(author.status)
+	)
+		return true;
+
+	return false;
 }
 
 export function ownerOnly(ctx: Context) {
