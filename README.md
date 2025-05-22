@@ -1,2 +1,10 @@
-# To-Do:
-- [x] use a custom handlers for commands and events instead of all keeping all of them in bot.ts
+# Telegram Create Addon Notifier
+
+A telegram bot that sends a notification whenever a create addon gets updated (the data is retried from [Create Addons](https://github.com/stef-00012/create-addons/)'s WebSocket)
+
+# How to run
+
+1. `git clone https://github.com/Stef-00012/telegram-create-notifier`
+2. `bun install`
+3. `bun run db:setup`
+4. `bun run start`
