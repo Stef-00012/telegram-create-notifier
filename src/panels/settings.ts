@@ -1,11 +1,9 @@
 import { settingKeyNames } from "@/constants/keys";
-import type { DBEvents } from "@/db/schemas/chats";
 import type { WSAddonKeys } from "@/types/addonsWS";
 import { InlineKeyboard } from "grammy";
-import db from "@/db/db"
 import { eq } from "drizzle-orm"
-import { chats as chatsSchema, type DBEvents } from "@/db/schemas/chats";
-import type { Context } from "grammy";
+import type { DBEvents } from "@/db/schemas/chats";
+import type { Context } from "@/bot";
 
 interface Data {
     filteredKeys: WSAddonKeys[];
@@ -51,10 +49,14 @@ export async function getSettingsPanel(section: Sections = "home", data?: Partia
 }
 
 export async function handleSettingsPanel(ctx: Context, value: string, chatId?: string) {
+	const allowed = await ctx.adminOnly(ctx);
+
+	if (!allowed) return ctx.answerCallbackQuery("Non Autorizzato");
+
     if (!chatId) return ctx.answerCallbackQuery("Qualcosa è andato storto");
 
-	const oldChat = await db.query.chats.findFirst({
-		where: eq(chatsSchema.chatId, chatId),
+	const oldChat = await ctx.db.query.chats.findFirst({
+		where: eq(ctx.dbSchemas.chats.chatId, chatId),
 	});
 
 	if (!oldChat) return ctx.reply("Qualcosa è andato storto");
@@ -74,7 +76,7 @@ export async function handleSettingsPanel(ctx: Context, value: string, chatId?: 
 	}
 
 	if (value.startsWith("filters_")) {
-		const setting = value.replace("filters_", "") as keyof WSAddon;
+		const setting = value.replace("filters_", "") as WSAddonKeys;	
 
 		let newFilteredKeys = oldChat.filteredKeys;
 
@@ -82,12 +84,12 @@ export async function handleSettingsPanel(ctx: Context, value: string, chatId?: 
 			newFilteredKeys = newFilteredKeys.filter((key) => key !== setting);
 		else newFilteredKeys.push(setting);
 
-		await db
-			.update(chatsSchema)
+		await ctx.db
+			.update(ctx.dbSchemas.chats)
 			.set({
 				filteredKeys: newFilteredKeys,
 			})
-			.where(eq(chatsSchema.chatId, chatId));
+			.where(eq(ctx.dbSchemas.chats.chatId, chatId));
 
 		const newSettingsPanel = await getSettingsPanel("filters", {
 			filteredKeys: newFilteredKeys,
@@ -106,14 +108,14 @@ export async function handleSettingsPanel(ctx: Context, value: string, chatId?: 
 			"",
 		) as keyof typeof oldChat;
 
-		const [newChat] = await db
-			.update(chatsSchema)
+		const [newChat] = await ctx.db
+			.update(ctx.dbSchemas.chats)
 			.set({
 				[setting]: !oldChat[setting],
 			})
-			.where(eq(chatsSchema.chatId, chatId))
+			.where(eq(ctx.dbSchemas.chats.chatId, chatId))
 			.returning({
-				enabled: chatsSchema.enabled,
+				enabled: ctx.dbSchemas.chats.enabled,
 			});
 
 		const newSettingsPanel = await getSettingsPanel("home", {
@@ -138,12 +140,12 @@ export async function handleSettingsPanel(ctx: Context, value: string, chatId?: 
 			newEvents = newEvents.filter((key) => key !== event);
 		else newEvents.push(event);
 
-		await db
-			.update(chatsSchema)
+		await ctx.db
+			.update(ctx.dbSchemas.chats)
 			.set({
 				events: newEvents,
 			})
-			.where(eq(chatsSchema.chatId, chatId));
+			.where(eq(ctx.dbSchemas.chats.chatId, chatId));
 
 		const newSettingsPanel = await getSettingsPanel("events", {
 			events: newEvents,

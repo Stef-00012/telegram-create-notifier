@@ -1,17 +1,14 @@
-import type { Context, Bot } from "grammy";
+import type { Context } from "@/bot";
+import type { FilterQuery, Filter, Middleware, CommandMiddleware } from "grammy";
 
-interface Command {
+export interface Command {
     name: string;
     description?: string;
     displaySuggestion?: boolean;
-    adminOnly?: boolean;
-    execute: (
-        bot: Bot,
-        ctx: Context
-    ) => Promise<unknown> | unknown;
+    execute: CommandMiddleware<Context>
 }
 
-interface Event {
-    name: string; // todo: use correct type
-    execute: (bot: Bot, ctx: Context) => Promise<unknown> | unknown;
+export interface Event<T extends FilterQuery = FilterQuery> {
+    name: T;
+    execute: Middleware<Filter<Context, T>>
 }
