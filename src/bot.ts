@@ -8,7 +8,7 @@ import WebSocket from "ws";
 
 import db from "@/db/db";
 import { eq } from "drizzle-orm";
-import { chats as chatsSchema, type DBEvents } from "@/db/schemas/chats";
+import { chats as chatsSchema } from "@/db/schemas/chats";
 
 import {
 	type CreateMessage,
@@ -26,7 +26,7 @@ import {
 	supportTypes,
 } from "@/constants/keys";
 import { compareArrays } from "@/functions/util";
-import { getSettingsPanel, type Sections } from "@/panels/settings";
+import { getSettingsPanel, handleSettingsPanel, type Sections } from "@/panels/settings";
 
 const socket = new WebSocket("wss://create-addons.stefdp.com/ws");
 
@@ -135,110 +135,13 @@ bot.on("callback_query:data", async (ctx) => {
 	const chatId = ctx.chatId?.toString();
 	const value = ctx.callbackQuery.data;
 
-	if (!chatId) return ctx.answerCallbackQuery("Qualcosa è andato storto");
-
-	const oldChat = await db.query.chats.findFirst({
-		where: eq(chatsSchema.chatId, chatId),
-	});
-
-	if (!oldChat) return ctx.reply("Qualcosa è andato storto");
-
-	if (value.startsWith("go__")) {
-		const section = value.replace("go__", "") as Sections;
-
-		const settingsPanel = await getSettingsPanel(section, {
-			filteredKeys: oldChat.filteredKeys,
-			enabled: oldChat.enabled,
-			events: oldChat.events,
-		});
-
-		return ctx.editMessageReplyMarkup({
-			reply_markup: settingsPanel,
-		});
-	}
-
-	if (value.startsWith("filters_")) {
-		const setting = value.replace("filters_", "") as keyof WSAddon;
-
-		let newFilteredKeys = oldChat.filteredKeys;
-
-		if (newFilteredKeys.includes(setting))
-			newFilteredKeys = newFilteredKeys.filter((key) => key !== setting);
-		else newFilteredKeys.push(setting);
-
-		await db
-			.update(chatsSchema)
-			.set({
-				filteredKeys: newFilteredKeys,
-			})
-			.where(eq(chatsSchema.chatId, chatId));
-
-		const newSettingsPanel = await getSettingsPanel("filters", {
-			filteredKeys: newFilteredKeys,
-		});
-
-		await ctx.answerCallbackQuery("Impostazione aggiornata");
-
-		return ctx.editMessageReplyMarkup({
-			reply_markup: newSettingsPanel,
-		});
-	}
-
-	if (value.startsWith("settingstoggle_")) {
-		const setting = value.replace(
-			"settingstoggle_",
-			"",
-		) as keyof typeof oldChat;
-
-		const [newChat] = await db
-			.update(chatsSchema)
-			.set({
-				[setting]: !oldChat[setting],
-			})
-			.where(eq(chatsSchema.chatId, chatId))
-			.returning({
-				enabled: chatsSchema.enabled,
-			});
-
-		const newSettingsPanel = await getSettingsPanel("home", {
-			enabled: newChat.enabled,
-		});
-
-		await ctx.answerCallbackQuery(
-			`Notifiche ${newChat.enabled ? "abilitate" : "disabilitate"}`,
-		);
-
-		return ctx.editMessageReplyMarkup({
-			reply_markup: newSettingsPanel,
-		});
-	}
-
-	if (value.startsWith("events_")) {
-		const event = value.replace("events_", "") as unknown as DBEvents[0];
-
-		let newEvents = oldChat.events;
-
-		if (newEvents.includes(event))
-			newEvents = newEvents.filter((key) => key !== event);
-		else newEvents.push(event);
-
-		await db
-			.update(chatsSchema)
-			.set({
-				events: newEvents,
-			})
-			.where(eq(chatsSchema.chatId, chatId));
-
-		const newSettingsPanel = await getSettingsPanel("events", {
-			events: newEvents,
-		});
-
-		await ctx.answerCallbackQuery("Impostazione aggiornata");
-
-		return ctx.editMessageReplyMarkup({
-			reply_markup: newSettingsPanel,
-		});
-	}
+	if (value.startsWith("settings__")) return await handleSettingsPanel(
+	    ctx,
+	    value.replace("settings__", ""),
+	    chatId
+	)
+	
+	await ctx.answerCallbackQuery("Bottone Sconosciuto")
 });
 
 bot.catch((error) => {
