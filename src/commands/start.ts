@@ -20,7 +20,7 @@ export default {
             "I miei comandi sono:",
             "",
             "- /setcanale - Setta il canale in cui mandare le notifiche delle mod.",
-            "- /impostazioni - Gestisci le impostazioni del bot, fra cui quali messaggi mandare (nuovi addon, addon aggiornati o entrambi), filtrare quando mandare il messaggio di un addon aggiornato (se attivo) e attivate/disattivare le notifiche del bot.",
+            "- /impostazioni - Gestisci le impostazioni del bot, fra cui quali messaggi mandare (nuovi addon, addon aggiornati o entrambi), filtrare quando mandare il messaggio di un addon aggiornato (se attivo) e attivare/disattivare le notifiche del bot.",
             "",
             'Creato da @Stef_DP e pubblicato su GitHub.'
         ]
