@@ -24,10 +24,6 @@ import {
 	supportTypes,
 } from "@/constants/keys";
 
-
-
-
-
 export interface Context extends BaseContext {
 	bot: Bot<Context>;
 	db: typeof db;
