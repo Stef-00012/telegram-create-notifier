@@ -1,10 +1,10 @@
-import { commands } from "@/commands";
 import { config } from "$config";
 
 import { Bot, InlineKeyboard } from "grammy";
 import { autoThread } from "@grammyjs/auto-thread";
 
 import WebSocket from "ws";
+import fs from "node:fs";
 
 import db from "@/db/db";
 import { eq } from "drizzle-orm";
@@ -33,37 +33,74 @@ const socket = new WebSocket("wss://create-addons.stefdp.com/ws");
 const bot = new Bot(config.token);
 bot.use(autoThread());
 
-bot.api.setMyCommands(commands);
+const suggestedCommands = []
 
-bot.command("setcanale", async (ctx) => {
-	const chatId = ctx.chatId.toString();
-	const topicId = ctx.msg.is_topic_message
-		? ctx.msg.message_thread_id?.toString()
-		: null;
-	const chatType = ctx.chat.type;
+const events = fs
+	.readdirSync(`${__dirname}/events`)
+	.filter((file) => file.endsWith(".ts"));
+	
+const commands = fs
+	.readdirSync(`${__dirname}/commands`)
+	.filter((file) => file.endsWith(".ts"));
+	
+for (const event of events) {
+	const eventData = (await import(`${__dirname}/events/${event}`)).default;
 
-	await db
-		.insert(chatsSchema)
-		.values({
-			chatId: chatId,
-			chatType: chatType,
-			topicId: topicId,
-			enabled: true,
-		})
-		.onConflictDoUpdate({
-			set: {
-				topicId: topicId,
-				chatType: chatType,
-				enabled: true,
-			},
-			target: chatsSchema.chatId,
-		});
+	bot.on(event.name, eventData.execute.bind(null, bot));
 
-	return await ctx.reply(
-		"Questa chat è stata configurata per le notifiche degli addons",
+	console.log(
+		`\x1b[38;2;21;150;113mLoaded the event "${event.name}"\x1b[0m`,
 	);
-});
+}
 
+for (const command of commands) {
+	const commandData = (await import(`${__dirname}/commands/${event}`)).default;
+	
+	if (commandData.displaySuggestion) {
+	    suggestedCommands.push({
+	        name: command.name,
+	        description: command.description
+	    })
+	}
+
+	bot.command(command.name, commandData.execute.bind(null, bot));
+
+	console.log(
+		`\x1b[38;2;21;150;113mLoaded the command "${command.name}"\x1b[0m`,
+	);
+}
+
+bot.api.setMyCommands(suggestedCommands);
+
+// bot.command("setcanale", async (ctx) => {
+// 	const chatId = ctx.chatId.toString();
+// 	const topicId = ctx.msg.is_topic_message
+// 		? ctx.msg.message_thread_id?.toString()
+// 		: null;
+// 	const chatType = ctx.chat.type;
+
+// 	await db
+// 		.insert(chatsSchema)
+// 		.values({
+// 			chatId: chatId,
+// 			chatType: chatType,
+// 			topicId: topicId,
+// 			enabled: true,
+// 		})
+// 		.onConflictDoUpdate({
+// 			set: {
+// 				topicId: topicId,
+// 				chatType: chatType,
+// 				enabled: true,
+// 			},
+// 			target: chatsSchema.chatId,
+// 		});
+
+// 	return await ctx.reply(
+// 		"Questa chat è stata configurata per le notifiche degli addons",
+// 	);
+// });
+// ------
 // bot.command("unsetcanale", async (ctx) => {
 // 	const chatId = ctx.chatId.toString();
 
@@ -109,40 +146,40 @@ bot.command("setcanale", async (ctx) => {
 // 		`Le notifiche sono state ${newValue.enabled ? "abilitate" : "disabilitate"} per questa chat`,
 // 	);
 // });
+// ------
+// bot.command("impostazioni", async (ctx) => {
+// 	const chatId = ctx.chatId.toString();
 
-bot.command("impostazioni", async (ctx) => {
-	const chatId = ctx.chatId.toString();
+// 	const chat = await db.query.chats.findFirst({
+// 		where: eq(chatsSchema.chatId, chatId),
+// 	});
 
-	const chat = await db.query.chats.findFirst({
-		where: eq(chatsSchema.chatId, chatId),
-	});
+// 	if (!chat)
+// 		return ctx.reply(
+// 			"Questa chat non è configurata per le notifiche degli addon",
+// 		);
 
-	if (!chat)
-		return ctx.reply(
-			"Questa chat non è configurata per le notifiche degli addon",
-		);
+// 	const settingsPanel = await getSettingsPanel("home", {
+// 		enabled: chat.enabled,
+// 	});
 
-	const settingsPanel = await getSettingsPanel("home", {
-		enabled: chat.enabled,
-	});
+// 	ctx.reply("Impostazioni per le notifiche degli addon della create", {
+// 		reply_markup: settingsPanel,
+// 	});
+// });
 
-	ctx.reply("Impostazioni per le notifiche degli addon della create", {
-		reply_markup: settingsPanel,
-	});
-});
+// bot.on("callback_query:data", async (ctx) => {
+// 	const chatId = ctx.chatId?.toString();
+// 	const value = ctx.callbackQuery.data;
 
-bot.on("callback_query:data", async (ctx) => {
-	const chatId = ctx.chatId?.toString();
-	const value = ctx.callbackQuery.data;
-
-	if (value.startsWith("settings__")) return await handleSettingsPanel(
-	    ctx,
-	    value.replace("settings__", ""),
-	    chatId
-	)
+// 	if (value.startsWith("settings__")) return await handleSettingsPanel(
+// 	    ctx,
+// 	    value.replace("settings__", ""),
+// 	    chatId
+// 	)
 	
-	await ctx.answerCallbackQuery("Bottone Sconosciuto")
-});
+// 	await ctx.answerCallbackQuery("Bottone Sconosciuto")
+// });
 
 bot.catch((error) => {
 	console.error(error);
