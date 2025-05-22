@@ -51,21 +51,20 @@ export interface CommandMessage extends WSmessage {
 
 export interface CommandResponseMessage extends WSmessage {
 	type: WSEvents.COMMAND_RESPONSE;
-    command: string;
+	command: string;
 	data: unknown;
 }
 
 export interface CommandErrorMessage extends WSmessage {
 	type: WSEvents.COMMAND_ERROR;
-    command?: string;
+	command?: string;
 	data: {
 		message: string;
 	};
 }
 
 export type WSAddonKeys = keyof WSAddon;
-export type WSAddonValues =
-	WSAddon[WSAddonKeys];
+export type WSAddonValues = WSAddon[WSAddonKeys];
 
 export interface WSAddon {
 	platform: Platforms;

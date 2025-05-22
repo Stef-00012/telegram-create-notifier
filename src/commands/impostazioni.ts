@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
 import { getSettingsPanel } from "@/panels/settings";
 import type { Command } from "@/types/handlers";
+import { eq } from "drizzle-orm";
 
 export default {
 	name: "impostazioni",

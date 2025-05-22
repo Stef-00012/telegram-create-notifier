@@ -1,13 +1,13 @@
-import { config } from "$config";
-
 import { Bot, InlineKeyboard, type Context as BaseContext } from "grammy";
+import { adminOnly, compareArrays, ownerOnly } from "@/functions/util";
+import type { Command, Event } from "@/types/handlers";
 import { autoThread } from "@grammyjs/auto-thread";
-
+import type { BotCommand } from "grammy/types";
+import schemas from "@/db/schema";
+import { config } from "$config";
 import WebSocket from "ws";
-import fs from "node:fs";
-
 import db from "@/db/db";
-
+import fs from "node:fs";
 import {
 	type CreateMessage,
 	type PingMessage,
@@ -23,10 +23,10 @@ import {
 	keyNames,
 	supportTypes,
 } from "@/constants/keys";
-import { adminOnly, compareArrays, ownerOnly } from "@/functions/util";
-import type { BotCommand } from "grammy/types";
-import schemas from "@/db/schema";
-import type { Command, Event } from "@/types/handlers";
+
+
+
+
 
 export interface Context extends BaseContext {
 	bot: Bot<Context>;
@@ -50,7 +50,7 @@ bot.use(async (ctx, next) => {
 	ctx.ownerOnly = ownerOnly;
 
 	await next();
-})
+});
 
 const suggestedCommands: BotCommand[] = [];
 
@@ -63,15 +63,19 @@ const commands = fs
 	.filter((file) => file.endsWith(".ts"));
 
 for (const event of events) {
-	const eventData = (await import(`${__dirname}/events/${event}`)).default as Event;
+	const eventData = (await import(`${__dirname}/events/${event}`))
+		.default as Event;
 
 	bot.on(eventData.name, eventData.execute);
 
-	console.log(`\x1b[34mCaricato l'evento "\x1b[0;1m${eventData.name}\x1b[0;34m"\x1b[0m`);
+	console.log(
+		`\x1b[34mCaricato l'evento "\x1b[0;1m${eventData.name}\x1b[0;34m"\x1b[0m`,
+	);
 }
 
 for (const command of commands) {
-	const commandData = (await import(`${__dirname}/commands/${command}`)).default as Command;
+	const commandData = (await import(`${__dirname}/commands/${command}`))
+		.default as Command;
 
 	if (commandData.displaySuggestion && commandData.description) {
 		suggestedCommands.push({
@@ -93,18 +97,19 @@ bot.catch((error) => {
 	console.error(error);
 });
 
-handleWS()
+handleWS();
 
 bot.start();
-
 
 function handleWS() {
 	const socket = new WebSocket(config.createAddonsWSURI);
 
 	socket.on("open", () => {
-		console.info("\x1b[32mConnesso al WebSocket per gli addon della create\x1b[0m");
+		console.info(
+			"\x1b[32mConnesso al WebSocket per gli addon della create\x1b[0m",
+		);
 	});
-	
+
 	socket.on("close", (code, reason) => {
 		console.warn(
 			`\x1b[31mDisconnesso dal WebSocket per gli addon della create:\n - Codice: \x1b[0;1m${code}\x1b[0;31m\n - Reason: \x1b[0;1m${reason}\x1b[0;31m\n\nTentativo di riconnessione fra 10 secondi\x1b[0m`,
@@ -112,40 +117,40 @@ function handleWS() {
 
 		setTimeout(handleWS, 10000);
 	});
-	
+
 	socket.on("error", (error) => {
 		console.error("\x1b[31mErrore del WebSocket:", error, "\x1b[0m");
 	});
-	
+
 	socket.on("message", async (data) => {
 		const message = JSON.parse(data.toString()) as
 			| CreateMessage
 			| UpdateMessage
 			| PingMessage;
-	
+
 		if (message.type === WSEvents.PING) {
 			const pong: PongMessage = {
 				type: WSEvents.PONG,
 			};
-	
+
 			socket.send(JSON.stringify(pong));
 		}
-	
+
 		const chats = await db.query.chats.findMany();
-	
+
 		if (message.type === WSEvents.CREATE) {
 			const data = message.data;
-	
+
 			for (const chat of chats) {
 				if (!chat.enabled || !chat.events.includes("create")) continue;
-	
+
 				for (const addon of data) {
 					const addonUrl = `https://modrinth.com/mod/${addon.slug}`;
-	
+
 					const addonUrlButton = new InlineKeyboard()
 						.url("Apri su Modrinth", addonUrl)
 						.row();
-	
+
 					const msgData = [
 						"<blockquote><b>Nuovo addon aggiunto</b></blockquote>",
 						`<b>Nome</b>: ${addon.name}`,
@@ -158,7 +163,7 @@ function handleWS() {
 						`<b>Server Side</b>: ${supportTypes[addon.serverSide]}`,
 						`<b>Modloaders</b>: ${addon.modloaders.map((modloader: string) => `<code>${modloader}</code>`).join(", ")}`,
 					];
-	
+
 					bot.api.sendMessage(chat.chatId, msgData.join("\n"), {
 						message_thread_id: chat.topicId
 							? Number.parseInt(chat.topicId)
@@ -172,13 +177,13 @@ function handleWS() {
 				}
 			}
 		}
-	
+
 		if (message.type === WSEvents.UPDATE) {
 			const data = message.data;
-	
+
 			for (const chat of chats) {
 				if (!chat.enabled || !chat.events.includes("update")) continue;
-	
+
 				for (const addon of data) {
 					if (
 						Object.keys(addon.changes).every(
@@ -186,21 +191,21 @@ function handleWS() {
 						)
 					)
 						continue;
-	
+
 					const addonUrl = `https://modrinth.com/mod/${addon.slug}`;
-	
+
 					const addonUrlButton = new InlineKeyboard()
 						.url("Apri su Modrinth", addonUrl)
 						.row();
-	
+
 					const msgData = [
 						"<blockquote><b>Addon aggiornato</b></blockquote>",
 						`<b>Nome</b>: ${addon.name}`,
 					];
-	
+
 					for (const _key in addon.changes) {
 						const key = _key as WSAddonKeys;
-	
+
 						if (
 							Array.isArray(addon.changes[key].old) &&
 							Array.isArray(addon.changes[key].new)
@@ -209,7 +214,7 @@ function handleWS() {
 								addon.changes[key].old,
 								addon.changes[key].new,
 							);
-	
+
 							msgData.push(
 								`<b>${keyNames[key]}</b>:${
 									added.length > 0
@@ -224,20 +229,20 @@ function handleWS() {
 						} else {
 							let oldValue = addon.changes[key].old;
 							let newValue = addon.changes[key].new;
-	
+
 							if (["clientSide", "serverSide"].includes(key)) {
 								oldValue = supportTypes[oldValue as keyof typeof supportTypes];
 								newValue = supportTypes[newValue as keyof typeof supportTypes];
 							}
-	
+
 							msgData.push(
 								`<b>${keyNames[key]}</b>: ${oldValue} => ${newValue}`,
 							);
 						}
 					}
-	
+
 					const msg = msgData.join("\n");
-	
+
 					bot.api.sendMessage(chat.chatId, msg, {
 						message_thread_id: chat.topicId
 							? Number.parseInt(chat.topicId)

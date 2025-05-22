@@ -1,7 +1,7 @@
-import type { WSAddonKeys } from "@/types/addonsWS";
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import type { WSAddonKeys } from "@/types/addonsWS";
 
-export type DBEvents = ("create" | "update")[]
+export type DBEvents = ("create" | "update")[];
 
 export const chats = sqliteTable("chats", {
 	chatId: text("chat_id").notNull().primaryKey(),
