@@ -35,6 +35,15 @@ export interface Context extends BaseContext {
 }
 
 const bot = new Bot<Context>(config.token);
+
+bot.catch((error) => {
+	console.error(
+		`\x1b[31mC'è stato un errore nel bot:\n - Nome: \x1b[0;1m${error.name}\x1b[31m\n - Messaggio: \x1b[0;1m${error.message}\x1b[31m\n - Causa: \x1b[0;1m${error.cause}\x1b[31m`,
+		error.stack,
+		"\x1b[0m",
+	);
+});
+
 bot.use(autoThread());
 bot.use(async (ctx, next) => {
 	ctx.bot = bot;
@@ -88,10 +97,6 @@ for (const command of commands) {
 }
 
 bot.api.setMyCommands(suggestedCommands);
-
-bot.catch((error) => {
-	console.error(error);
-});
 
 handleWS();
 
