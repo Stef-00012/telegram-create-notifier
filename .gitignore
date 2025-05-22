@@ -8,3 +8,5 @@ bun.lockb
 drizzle/
 migrations/
 *.zip
+/__start.sh
+.bun
