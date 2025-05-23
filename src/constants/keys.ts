@@ -41,13 +41,12 @@ export const supportTypes: Record<SupportTypes, string> = {
 };
 
 export const settingKeyNames: Partial<Record<WSAddonKeys, string>> = {
-	author: keyNames.author,
 	categories: keyNames.categories,
 	description: keyNames.description,
 	icon: keyNames.icon,
 	name: keyNames.name,
-	platform: keyNames.platform,
-	slug: keyNames.slug,
+	// platform: keyNames.platform,
+	// slug: keyNames.slug,
 	versions: keyNames.versions,
 	clientSide: keyNames.clientSide,
 	color: keyNames.color,

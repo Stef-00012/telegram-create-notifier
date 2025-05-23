@@ -158,7 +158,7 @@ function handleWS() {
 						`<b>Descrizione</b>: ${addon.description}`,
 						`<b>Autore</b>: <a href="https://modrinth.com/user/${addon.author}">${addon.author}</a>`,
 						`<b>Versioni</b>${addon.versions.map((version: string) => `<code>${version}</code>`).join(", ")}`,
-						`<b>Data di Creazione</b>: ${new Date(addon.created).toLocaleDateString("it")}`,
+						`<b>Data di Creazione</b>: ${new Date(addon.created).toLocaleString("it")}`,
 						`<b>Categorie</b>: ${addon.categories.map((category: string) => `<code>${category}</code>`).join(", ")}`,
 						`<b>Client Side</b>: ${supportTypes[addon.clientSide]}`,
 						`<b>Server Side</b>: ${supportTypes[addon.serverSide]}`,
@@ -234,6 +234,11 @@ function handleWS() {
 							if (["clientSide", "serverSide"].includes(key)) {
 								oldValue = supportTypes[oldValue as keyof typeof supportTypes];
 								newValue = supportTypes[newValue as keyof typeof supportTypes];
+							}
+							
+							if (["created", "modified"].includes(key)) {
+							    oldValue = new Date(oldValue).toLocaleString("it")
+							    newValue = new Date(newValue).toLocaleString("it")
 							}
 
 							msgData.push(
