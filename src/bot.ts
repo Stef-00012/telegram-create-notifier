@@ -207,6 +207,8 @@ function handleWS() {
 					for (const _key in addon.changes) {
 						const key = _key as WSAddonKeys;
 
+						if (!chat.filteredKeys.includes(key)) continue;
+
 						if (
 							Array.isArray(addon.changes[key].old) &&
 							Array.isArray(addon.changes[key].new)
@@ -237,8 +239,8 @@ function handleWS() {
 							}
 							
 							if (["created", "modified"].includes(key)) {
-							    oldValue = new Date(oldValue).toLocaleString("it")
-							    newValue = new Date(newValue).toLocaleString("it")
+							    oldValue = new Date(oldValue as WSAddon["created"]).toLocaleString("it")
+							    newValue = new Date(newValue as WSAddon["created"]).toLocaleString("it")
 							}
 							
 							if (key === "icon") {
