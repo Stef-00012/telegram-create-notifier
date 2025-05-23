@@ -240,6 +240,11 @@ function handleWS() {
 							    oldValue = new Date(oldValue).toLocaleString("it")
 							    newValue = new Date(newValue).toLocaleString("it")
 							}
+							
+							if (key === "icon") {
+							    oldValue = `<a href="${oldValue}">Vecchia</a>`
+							    newValue = `<a href="${newValue}">Nuova</a>`
+							}
 
 							msgData.push(
 								`<b>${keyNames[key]}</b>: ${oldValue} => ${newValue}`,
