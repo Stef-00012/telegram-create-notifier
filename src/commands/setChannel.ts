@@ -1,14 +1,12 @@
 import type { Command } from "@/types/handlers";
 
 export default {
-	name: "setcanale",
-	description: "Setta il canale in cui mandare le notifiche delle mod",
+	name: "setchannel",
+	description: "Set the channel where to send the notifications of the addons",
 	displaySuggestion: true,
 
 	async execute(ctx) {
-		const allowed = await ctx.adminOnly(ctx);
-
-		if (!allowed) return;
+		if (!ctx.isAdmin) return;
 
 		const chatId = ctx.chatId.toString();
 		const topicId = ctx.msg.is_topic_message
@@ -16,7 +14,7 @@ export default {
 			: null;
 		const chatType = ctx.chat.type;
 
-		await ctx.db
+		const [newChat] = await ctx.db
 			.insert(ctx.dbSchemas.chats)
 			.values({
 				chatId: chatId,
@@ -31,10 +29,11 @@ export default {
 					enabled: true,
 				},
 				target: ctx.dbSchemas.chats.chatId,
+			})
+			.returning({
+				locale: ctx.dbSchemas.chats.locale
 			});
 
-		return await ctx.reply(
-			"Questa chat è stata configurata per le notifiche degli addons",
-		);
+		return await ctx.localizedReply("commands.setchannel.messages.success", null, newChat.locale)
 	},
 } satisfies Command;

@@ -1,0 +1,47 @@
+{
+    "panels.buttons.back": "Indietro",
+
+    "panels.settings.buttons.goFilters": "Filtri",
+    "panels.settings.buttons.goEvents": "Eventi",
+    "panels.settings.buttons.goLocales": "Lingua",
+    "panels.settings.buttons.changeMessages": "Modifica Messaggi",
+    "panels.settings.buttons.notifications": "Notifiche Attive",
+
+    "panels.settings.buttons.filters.categories": "Categorie",
+    "panels.settings.buttons.filters.description": "Descrizione",
+    "panels.settings.buttons.filters.icon": "Icona",
+    "panels.settings.buttons.filters.name": "Nome",
+    "panels.settings.buttons.filters.versions": "Versioni",
+    "panels.settings.buttons.filters.clientSide": "Client Side",
+    "panels.settings.buttons.filters.license": "Licenza",
+    "panels.settings.buttons.filters.serverSide": "Server Side",
+    "panels.settings.buttons.filters.modloaders": "Modloaders",
+
+    "panels.settings.buttons.events.newAddon": "Nuovo Addon",
+    "panels.settings.buttons.events.updatedAddon": "Addon Aggiornato",
+
+    "panels.settings.buttons.changeMessages.newAddon": "Nuovo Addon",
+    "panels.settings.buttons.changeMessages.updatedAddon": "Addon Aggiornato",
+    
+    "panels.settings.messages.successUpdate": "Impostazione aggiornata",
+    
+    "panels.settings.messages.toggles.enabled.on": "Notifiche abilitate",
+    "panels.settings.messages.toggles.enabled.off": "Notifiche disabilitate",
+    
+    "panels.settings.messages.changeMessages.newAddonMessage": "Manda il nuovo messaggio da usare per i nuovi addon",
+    "panels.settings.messages.changeMessages.updatedAddonMessage": "Manda il nuovo messaggio da usare gli update degli addon",
+    "panels.settings.messages.changeMessages.newAddonMessage.success": "Hai aggiornato il messaggio per i nuovi addon",
+    "panels.settings.messages.changeMessages.updatedAddonMessage.success": "Hai aggiornato il messaggio per gli addon aggiornati",
+
+    "panels.messages.unauthorized": "Non Autorizzato",
+
+    "messages.error": "Qualcosa è andato storto",
+    
+    "commands.setchannel.messages.success": "Questa chat è stata configurata per le notifiche degli addons",
+    
+    "commands.settings.messages.notConfigured": "Questa chat non è configurata per le notifiche degli addon",
+    "commands.settings.messages.success": "Impostazioni per le notifiche degli addon della create",
+    
+    "commands.start.messages.success": "Benvenuto! Questo bot ti permette di ricevere notifiche quando viene creato un nuovo addon per la mod \"Create\" di Minecraft.\nI miei comandi sono:\n\n- /setchannel - Setta il canale in cui mandare le notifiche delle mod.\n- /settings - Gestisci le impostazioni del bot, fra cui quali messaggi mandare (nuovi addon, addon aggiornati o entrambi), filtrare quando mandare il messaggio di un addon aggiornato (se attivo) e attivare/disattivare le notifiche del bot.\n\nCreato da @Stef_DP e pubblicato su GitHub.",
+    "commands.start.buttons.viewSource": "Visualizza il Codice"
+}

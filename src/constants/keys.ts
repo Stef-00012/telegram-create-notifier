@@ -40,17 +40,14 @@ export const supportTypes: Record<SupportTypes, string> = {
 	unknown: "Sconosciuto",
 };
 
-export const settingKeyNames: Partial<Record<WSAddonKeys, string>> = {
-	categories: keyNames.categories,
-	description: keyNames.description,
-	icon: keyNames.icon,
-	name: keyNames.name,
-	// platform: keyNames.platform,
-	// slug: keyNames.slug,
-	versions: keyNames.versions,
-	clientSide: keyNames.clientSide,
-	// color: keyNames.color,
-	license: keyNames.license,
-	serverSide: keyNames.serverSide,
-	modloaders: keyNames.modloaders,
-};
+export const settingKeys: WSAddonKeys[] = [
+	"categories",
+	"description",
+	"icon",
+	"name",
+	"versions",
+	"clientSide",
+	"license",
+	"serverSide",
+	"modloaders",
+];
