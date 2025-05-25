@@ -1,4 +1,4 @@
-import { compareArrays } from "@/functions/util";
+import { getNewAddonVariables, getUpdatedAddonVariables, parseVariables } from "@/functions/util";
 import { type Bot, InlineKeyboard } from "grammy";
 import type { Context } from "@/types/grammy";
 import { config } from "$config";
@@ -10,36 +10,30 @@ import {
 	type PongMessage,
 	type UpdateMessage,
 	type WSAddon,
-	type WSAddonKeys,
 	WSEvents,
 } from "@/types/addonsWS";
-import {
-	addKeyNames,
-	removeKeyNames,
-	keyNames,
-	supportTypes,
-} from "@/constants/keys";
 import type { ConversationFlavor } from "@grammyjs/conversations";
+import { localize } from "@/functions/localize";
 
 export function handleWS(bot: Bot<ConversationFlavor<Context>>): void {
 	const socket = new WebSocket(config.createAddonsWSURI);
 
 	socket.on("open", () => {
 		console.info(
-			"\x1b[32mConnesso al WebSocket per gli addon della create\x1b[0m",
+			"\x1b[32mConnected to the create addons WebSocket\x1b[0m",
 		);
 	});
 
 	socket.on("close", (code, reason) => {
 		console.warn(
-			`\x1b[31mDisconnesso dal WebSocket per gli addon della create:\n - Codice: \x1b[0;1m${code}\x1b[0;31m\n - Reason: \x1b[0;1m${reason}\x1b[0;31m\n\nTentativo di riconnessione fra 10 secondi\x1b[0m`,
+			`\x1b[31mDisconnected from the create addons WebSocket:\n - Code: \x1b[0;1m${code}\x1b[0;31m\n - Reason: \x1b[0;1m${reason}\x1b[0;31m\n\nRetrying to connect in 10 seconds\x1b[0m`,
 		);
 
 		setTimeout(handleWS, 10000);
 	});
 
 	socket.on("error", (error) => {
-		console.error("\x1b[31mErrore del WebSocket:", error, "\x1b[0m");
+		console.error("\x1b[31mWebSocket Error:", error, "\x1b[0m");
 	});
 
 	socket.on("message", async (data) => {
@@ -68,23 +62,17 @@ export function handleWS(bot: Bot<ConversationFlavor<Context>>): void {
 					const addonUrl = `https://modrinth.com/mod/${addon.slug}`;
 
 					const addonUrlButton = new InlineKeyboard()
-						.url("Apri su Modrinth", addonUrl)
+						.url(
+							await localize(chat.locale, "websocket.messages.openOnModrinth"),
+							addonUrl,
+						)
 						.row();
 
-					const msgData = [
-						"<blockquote><b>Nuovo addon aggiunto</b></blockquote>",
-						`<b>Nome</b>: ${addon.name}`,
-						`<b>Descrizione</b>: ${addon.description}`,
-						`<b>Autore</b>: <a href="https://modrinth.com/user/${addon.author}">${addon.author}</a>`,
-						`<b>Versioni</b>${addon.versions.map((version: string) => `<code>${version}</code>`).join(", ")}`,
-						`<b>Data di Creazione</b>: ${new Date(addon.created).toLocaleString("it")}`,
-						`<b>Categorie</b>: ${addon.categories.map((category: string) => `<code>${category}</code>`).join(", ")}`,
-						`<b>Client Side</b>: ${supportTypes[addon.clientSide]}`,
-						`<b>Server Side</b>: ${supportTypes[addon.serverSide]}`,
-						`<b>Modloaders</b>: ${addon.modloaders.map((modloader: string) => `<code>${modloader}</code>`).join(", ")}`,
-					];
+					const variables = await getNewAddonVariables(addon, chat.locale)
 
-					bot.api.sendMessage(chat.chatId, msgData.join("\n"), {
+					const msg = parseVariables(chat.newAddonMessage, variables);
+
+					bot.api.sendMessage(chat.chatId, msg, {
 						message_thread_id: chat.topicId
 							? Number.parseInt(chat.topicId)
 							: undefined,
@@ -115,69 +103,15 @@ export function handleWS(bot: Bot<ConversationFlavor<Context>>): void {
 					const addonUrl = `https://modrinth.com/mod/${addon.slug}`;
 
 					const addonUrlButton = new InlineKeyboard()
-						.url("Apri su Modrinth", addonUrl)
+						.url(
+							await localize(chat.locale, "websocket.messages.openOnModrinth"),
+							addonUrl,
+						)
 						.row();
 
-					const msgData = [
-						"<blockquote><b>Addon aggiornato</b></blockquote>",
-						`<b>Nome</b>: ${addon.name}`,
-					];
+					const variables = await getUpdatedAddonVariables(addon, chat.locale)
 
-					for (const _key in addon.changes) {
-						const key = _key as WSAddonKeys;
-
-						if (!chat.filteredKeys.includes(key)) continue;
-
-						if (
-							Array.isArray(addon.changes[key].old) &&
-							Array.isArray(addon.changes[key].new)
-						) {
-							const { removed, added } = compareArrays(
-								addon.changes[key].old,
-								addon.changes[key].new,
-							);
-
-							msgData.push(
-								`<b>${keyNames[key]}</b>:${
-									added.length > 0
-										? `\n    - ${addKeyNames[key]}: ${added.map((version) => `<code>${version}</code>`).join(", ")}`
-										: ""
-								}${
-									removed.length > 0
-										? `\n    - ${removeKeyNames[key]}: ${removed.map((version) => `<code>${version}</code>`).join(", ")}`
-										: ""
-								}`,
-							);
-						} else {
-							let oldValue = addon.changes[key].old;
-							let newValue = addon.changes[key].new;
-
-							if (["clientSide", "serverSide"].includes(key)) {
-								oldValue = supportTypes[oldValue as keyof typeof supportTypes];
-								newValue = supportTypes[newValue as keyof typeof supportTypes];
-							}
-
-							if (["created", "modified"].includes(key)) {
-								oldValue = new Date(
-									oldValue as WSAddon["created"],
-								).toLocaleString("it");
-								newValue = new Date(
-									newValue as WSAddon["created"],
-								).toLocaleString("it");
-							}
-
-							if (key === "icon") {
-								oldValue = `<a href="${oldValue}">Vecchia</a>`;
-								newValue = `<a href="${newValue}">Nuova</a>`;
-							}
-
-							msgData.push(
-								`<b>${keyNames[key]}</b>: ${oldValue} => ${newValue}`,
-							);
-						}
-					}
-
-					const msg = msgData.join("\n");
+					const msg = parseVariables(chat.updatedAddonMessage, variables);
 
 					bot.api.sendMessage(chat.chatId, msg, {
 						message_thread_id: chat.topicId

@@ -42,6 +42,16 @@
     "commands.settings.messages.notConfigured": "Questa chat non è configurata per le notifiche degli addon",
     "commands.settings.messages.success": "Impostazioni per le notifiche degli addon della create",
     
-    "commands.start.messages.success": "Benvenuto! Questo bot ti permette di ricevere notifiche quando viene creato un nuovo addon per la mod \"Create\" di Minecraft.\nI miei comandi sono:\n\n- /setchannel - Setta il canale in cui mandare le notifiche delle mod.\n- /settings - Gestisci le impostazioni del bot, fra cui quali messaggi mandare (nuovi addon, addon aggiornati o entrambi), filtrare quando mandare il messaggio di un addon aggiornato (se attivo) e attivare/disattivare le notifiche del bot.\n\nCreato da @Stef_DP e pubblicato su GitHub.",
-    "commands.start.buttons.viewSource": "Visualizza il Codice"
+    "commands.start.messages.success": "Benvenuto! Questo bot ti permette di ricevere notifiche quando viene aggiornato o creato un nuovo addon per la mod \"Create\" di Minecraft.\nI miei comandi sono:\n\n- /setchannel - Setta il canale in cui mandare le notifiche degli addon.\n- /settings - Gestisci le impostazioni del bot.\n\nCreato da @Stef_DP e pubblicato su GitHub.",
+    "commands.start.buttons.viewSource": "Visualizza il Codice",
+
+    "commands.preview.messages.notConfigured": "Questa chat non è configurata per le notifiche degli addon",
+    "commands.preview.messages.invalidArgs": "Devi specificare un messaggio fra \"new\" (nuovo addon) o \"update\" (addon aggiornato)",
+
+    "websocket.messages.openOnModrinth": "Apri su Modrinth",
+    
+    "websocket.variables.clientServerSide.unknown": "Sconosciuto",
+    "websocket.variables.clientServerSide.required": "Richiesta",
+    "websocket.variables.clientServerSide.optional": "Opzionale",
+    "websocket.variables.clientServerSide.unsupported": "Non Supportata"
 }

@@ -2,6 +2,7 @@ import { Bot } from "grammy";
 import { adminOnly, ownerOnly } from "@/functions/util";
 import type { Command, Event } from "@/types/handlers";
 import { autoThread } from "@grammyjs/auto-thread";
+import { autoRetry } from "@grammyjs/auto-retry";
 import { handleWS } from "@/functions/handleWS";
 import { localize } from "@/functions/localize";
 import type { BotCommand } from "grammy/types";
@@ -28,11 +29,13 @@ const bot = new Bot<ConversationFlavor<Context>>(config.token);
 
 bot.catch((error) => {
 	console.error(
-		`\x1b[31mC'è stato un errore nel bot:\n - Nome: \x1b[0;1m${error.name}\x1b[31m\n - Messaggio: \x1b[0;1m${error.message}\x1b[31m\n - Causa: \x1b[0;1m${error.cause}\x1b[31m`,
+		`\x1b[31mThere was an error in the bot:\n - Name: \x1b[0;1m${error.name}\x1b[31m\n - Message: \x1b[0;1m${error.message}\x1b[31m\n - Cause: \x1b[0;1m${error.cause}\x1b[31m`,
 		error.stack,
 		"\x1b[0m",
 	);
 });
+
+bot.api.config.use(autoRetry())
 
 bot.use(autoThread());
 bot.use(async (ctx, next) => {
@@ -99,7 +102,7 @@ for (const event of events) {
 	bot.on(eventData.name, eventData.execute);
 
 	console.log(
-		`\x1b[34mCaricato l'evento "\x1b[0;1m${eventData.name}\x1b[0;34m"\x1b[0m`,
+		`\x1b[34mLoaded the event "\x1b[0;1m${eventData.name}\x1b[0;34m"\x1b[0m`,
 	);
 }
 
@@ -117,7 +120,7 @@ for (const command of commands) {
 	bot.command(commandData.name, commandData.execute);
 
 	console.log(
-		`\x1b[36mCaricato il comando "\x1b[0;1m${commandData.name}\x1b[0;36m"\x1b[0m`,
+		`\x1b[36mLoaded the command "\x1b[0;1m${commandData.name}\x1b[0;36m"\x1b[0m`,
 	);
 }
 

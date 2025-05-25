@@ -1,1 +1,57 @@
-{}
+{
+    "panels.buttons.back": "Back",
+
+    "panels.settings.buttons.goFilters": "Filters",
+    "panels.settings.buttons.goEvents": "Events",
+    "panels.settings.buttons.goLocales": "Language",
+    "panels.settings.buttons.changeMessages": "Edit Messages",
+    "panels.settings.buttons.notifications": "Notifications Enabled",
+
+    "panels.settings.buttons.filters.categories": "Categories",
+    "panels.settings.buttons.filters.description": "Description",
+    "panels.settings.buttons.filters.icon": "Icon",
+    "panels.settings.buttons.filters.name": "Name",
+    "panels.settings.buttons.filters.versions": "Versions",
+    "panels.settings.buttons.filters.clientSide": "Client Side",
+    "panels.settings.buttons.filters.license": "License",
+    "panels.settings.buttons.filters.serverSide": "Server Side",
+    "panels.settings.buttons.filters.modloaders": "Modloaders",
+
+    "panels.settings.buttons.events.newAddon": "New Addon",
+    "panels.settings.buttons.events.updatedAddon": "Updated Addon",
+
+    "panels.settings.buttons.changeMessages.newAddon": "New Addon",
+    "panels.settings.buttons.changeMessages.updatedAddon": "Updated Addon",
+    
+    "panels.settings.messages.successUpdate": "Setting updated",
+    
+    "panels.settings.messages.toggles.enabled.on": "Notifications enabled",
+    "panels.settings.messages.toggles.enabled.off": "Notifications disabled",
+    
+    "panels.settings.messages.changeMessages.newAddonMessage": "Send the new message to use for the new addons",
+    "panels.settings.messages.changeMessages.updatedAddonMessage": "Send the new message to use for the updated addons",
+    "panels.settings.messages.changeMessages.newAddonMessage.success": "You updated the message for the new addons",
+    "panels.settings.messages.changeMessages.updatedAddonMessage.success": "You updated the message for the updated addons",
+
+    "panels.messages.unauthorized": "Unauthorized",
+
+    "messages.error": "Something went wrong",
+    
+    "commands.setchannel.messages.success": "This chat has been configured for the addons notifications",
+    
+    "commands.settings.messages.notConfigured": "This chat has not been configured for the addons notifications",
+    "commands.settings.messages.success": "Settings for the Create addons notifications",
+    
+    "commands.start.messages.success": "Welcome! This bot will allow you to receive notification when an addon for the Minecraft mod \"Create\" gets updated or created.\nMy commands are:\n\n- /setchannel - Se the channel where to send addon notifications.\n- /settings - Manage the settings of the bot.\n\nMade by @Stef_DP and published on GitHub.",
+    "commands.start.buttons.viewSource": "View the Source",
+
+    "commands.preview.messages.notConfigured": "This chat has been configured for the addons notifications",
+    "commands.preview.messages.invalidArgs": "You must specify a message between \"new\" (new addon) or \"update\" (updated addon)",
+
+    "websocket.messages.openOnModrinth": "Open on Modrinth",
+    
+    "websocket.variables.clientServerSide.unknown": "Unknown",
+    "websocket.variables.clientServerSide.required": "Required",
+    "websocket.variables.clientServerSide.optional": "Optional",
+    "websocket.variables.clientServerSide.unsupported": "Unsupported"
+}

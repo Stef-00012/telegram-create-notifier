@@ -1,7 +1,12 @@
-import type { DBMessage } from "@/db/schemas/chats";
 import type { Context } from "@/types/grammy";
+import { EntitiesParser } from "@qz/telegram-entities-parser";
+import type { Message } from "@qz/telegram-entities-parser/types";
+import { localize } from "@/functions/localize";
+import type { UpdateMessage, WSAddon } from "@/types/addonsWS";
 
 type Result<T> = { removed: T[]; added: T[] };
+
+const entitiesParser = new EntitiesParser();
 
 export function compareArrays<T>(oldArray: T[], newArray: T[]): Result<T> {
 	const removed = oldArray.filter((item) => !newArray.includes(item));
@@ -31,125 +36,104 @@ export function ownerOnly(ctx: Context) {
 	return ctx.config.ownerIds.includes(ctx.from?.id as number);
 }
 
-// Helper to process ((?variable:if-exists|if-not-exists)) conditionals
-function processConditionals(
-    text: string,
-    entities: DBMessage["entities"],
-    variables: Record<string, string>
-): { text: string; entities: DBMessage["entities"] } {
-    const condRegex = /\(\(\?([a-zA-Z0-9_]+):([^|]*)\|([^)]+)\)\)/g;
-    let match: RegExpExecArray | null;
-    let offsetShift = 0;
-
-    while ((match = condRegex.exec(text)) !== null) {
-        const [placeholder, varName, ifExists, ifNotExists] = match;
-        const varValue = variables[varName];
-        let replacement = varValue ? ifExists : ifNotExists;
-
-        // Recursively replace variables in the replacement text
-        replacement = replacement.replace(/\[\[([a-zA-Z0-9_]+)\]\]/g, (_, v) => variables[v] ?? "");
-
-        const start = match.index + offsetShift;
-        const end = start + placeholder.length;
-
-        text = text.slice(0, start) + replacement + text.slice(end);
-
-        const diff = replacement.length - placeholder.length;
-
-        // Remove or shift entities
-        const newEntities: typeof entities = [];
-        for (const entity of entities) {
-            if (entity.offset >= end) {
-                newEntities.push({ ...entity, offset: entity.offset + diff });
-            } else if (entity.offset + entity.length <= start) {
-                newEntities.push(entity);
-            } else if (entity.offset >= start && entity.offset < end) {
-                // Entity is inside the removed conditional, drop it
-            } else if (entity.offset < start && entity.offset + entity.length > end) {
-                // Entity spans over the replaced area, adjust length
-                newEntities.push({ ...entity, length: entity.length + diff });
-            }
-            // else: partial overlap, safest to drop
-        }
-        entities = newEntities;
-
-        offsetShift += diff;
-        condRegex.lastIndex = 0; // Restart regex after text change
-    }
-
-    return { text, entities };
+export function parse(message: Message) {
+	return entitiesParser
+		.parse({ message })
+		.replaceAll(
+			'<blockquote class="tg-expandable-blockquote">',
+			'<blockquote expandable class="tg-blockquote">',
+		);
 }
 
-export function replaceVariables(
-    message: DBMessage,
-    variables: Record<string, string>,
-): DBMessage {
-    let text = message.text;
-    let entities: DBMessage["entities"] = message.entities.map(e => ({ ...e }));
+function parseConditional(text: string, variables: Record<string, string>) {
+	const conditionalRegex =
+		/\[\[\?(?<variable>.*?):(?<trueMsg>.*?)\|(?<falseMsg>.*?)\?\]\]/gim;
 
-	console.log("before:", text, entities);
-	
-    // 1. Process ((?variable:if-exists|if-not-exists)) conditionals first
-    ({ text, entities } = processConditionals(text, entities, variables));
-	console.log("after:", text, entities);
+	return text.replace(
+		conditionalRegex,
+		(_match, variable, trueMsg, falseMsg) => {
+			if (variables[variable]) return trueMsg;
+			return falseMsg;
+		},
+	);
+}
 
-    // 2. Replace [[variables]]
-    let offsetShift = 0;
+export function parseVariables(
+	_text: string,
+	variables: Record<string, string>,
+) {
+	const variableRegex = /\[\[(?<variable>.*?)\]\]/gim;
 
-    const varRegex = /\[\[([a-zA-Z0-9_]+)\]\]/g;
+	const text = parseConditional(_text, variables);
 
-    let variableMatch = varRegex.exec(text);
+	return text.replace(variableRegex, (match, variable) => {
+		if (variables[variable]) return variables[variable];
+		return match;
+	});
+}
 
-    while (variableMatch !== null) {
-        const [placeholder, varName] = variableMatch;
-        const value = variables[varName] ?? `[[${varName}]]`;
-        const start = variableMatch.index + offsetShift;
-        const end = start + placeholder.length;
+export async function getNewAddonVariables(data: WSAddon, locale: string) {
+	const output: Record<string, string> = {};
 
-        text = text.slice(0, start) + value + text.slice(end);
+	for (const [key, value] of Object.entries(data)) {
+		if (Array.isArray(value)) output[key] = value.join(", ");
+		else if (key === "created" || key === "modified")
+			output[key] = new Date(value).toLocaleString(locale);
+		else if (key === "clientSide" || key === "serverSide")
+			output[key] = await localize(
+				locale,
+				`websocket.variables.clientServerSide.${value}`,
+			);
+		else if (key === "author") {
+			output[key] = value;
+			output.authorUrl = `https://modrinth.com/user/${value}`;
+		}
+		else output[key] = value;
+	}
 
-        const diff = value.length - placeholder.length;
+	return output;
+}
 
-        for (const entity of entities) {
-            if (entity.offset > start) entity.offset += diff;
-            else if (entity.offset <= start && entity.offset + entity.length > start)
-                entity.length += diff;
-        }
+export async function getUpdatedAddonVariables(
+	data: UpdateMessage["data"][0],
+	locale: string,
+) {
+	const output: Record<string, string> = {
+		name: data.name,
+		platform: data.platform,
+	};
 
-        offsetShift += diff;
-        variableMatch = varRegex.exec(text);
-    }
+	for (const [key, value] of Object.entries(data.changes)) {
+		const baseKey = key.charAt(0).toUpperCase() + key.slice(1);
 
-    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-    offsetShift = 0;
+		if (Array.isArray(value.old) && Array.isArray(value.new)) {
+			output[`old${baseKey}`] = value.old.join(", ");
+			output[`new${baseKey}`] = value.new.join(", ");
 
-    let linkMatch = linkRegex.exec(text);
+			const { added, removed } = compareArrays(value.old, value.new);
+			output[`added${baseKey}`] = added.join(", ");
+			output[`removed${baseKey}`] = removed.join(", ");
+		} else if (key === "created" || key === "modified") {
+			output[`old${baseKey}`] = new Date(value.old as string).toLocaleString(
+				locale,
+			);
+			output[`new${baseKey}`] = new Date(value.new as string).toLocaleString(
+				locale,
+			);
+		} else if (key === "clientSide" || key === "serverSide") {
+			output[`old${baseKey}`] = await localize(
+				locale,
+				`websocket.variables.clientServerSide.${value.old}`,
+			);
+			output[`new${baseKey}`] = await localize(
+				locale,
+				`websocket.variables.clientServerSide.${value.new}`,
+			);
+		} else {
+			output[`old${baseKey}`] = String(value.old);
+			output[`new${baseKey}`] = String(value.new);
+		}
+	}
 
-    while (linkMatch !== null) {
-        const [md, linkText, url] = linkMatch;
-        const start = linkMatch.index + offsetShift;
-        const end = start + md.length;
-
-        text = text.slice(0, start) + linkText + text.slice(end);
-
-        entities.push({
-            offset: start,
-            length: linkText.length,
-            type: "text_link",
-            url,
-        });
-
-        const diff = linkText.length - md.length;
-
-        for (const entity of entities) {
-            if (entity.offset > start) entity.offset += diff;
-        }
-
-        offsetShift += diff;
-        linkMatch = linkRegex.exec(text);
-    }
-
-    entities.sort((a, b) => a.offset - b.offset);
-
-    return { text, entities };
+	return output;
 }

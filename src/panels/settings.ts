@@ -10,7 +10,8 @@ import { eq } from "drizzle-orm";
 import path from "node:path";
 import fs from "node:fs";
 import db from "@/db/db";
-import dbSchemas from "@/db/schema"
+import dbSchemas from "@/db/schema";
+import { parse } from "@/functions/util";
 interface Data {
 	filteredKeys: WSAddonKeys[];
 	enabled: boolean;
@@ -19,7 +20,7 @@ interface Data {
 
 export type Sections = "home" | "filters" | "events" | "locales" | "messages";
 
-const localesDir = path.join(__dirname, "../locales")
+const localesDir = path.join(__dirname, "../locales");
 
 export async function getSettingsPanel(
 	section: Sections = "home",
@@ -47,7 +48,7 @@ export async function getSettingsPanel(
 			.row()
 			.text(
 				await localize(locale, "panels.settings.buttons.changeMessages"),
-				"settings__go_messages"
+				"settings__go_messages",
 			)
 			.row()
 			.text(
@@ -103,7 +104,7 @@ export async function getSettingsPanel(
 		const locales = fs
 			.readdirSync(localesDir)
 			.filter((file) => file.endsWith(".json"))
-			.map((file) => file.split(".")[0])
+			.map((file) => file.split(".")[0]);
 
 		let count = 0;
 
@@ -154,12 +155,13 @@ export async function handleSettingsPanel(
 	locale = "en",
 	chatId?: string,
 ) {
-	if (!ctx.isAdmin) return ctx.localizedAnswerCallbackQuery("panels.messages.unauthorized")
+	if (!ctx.isAdmin)
+		return ctx.localizedAnswerCallbackQuery("panels.messages.unauthorized");
 
 	if (!chatId) return ctx.localizedAnswerCallbackQuery("messages.error");
-	
-	const oldChat = ctx.dbChat
-	
+
+	const oldChat = ctx.dbChat;
+
 	if (!oldChat) return ctx.localizedAnswerCallbackQuery("messages.error");
 
 	if (value.startsWith("go_")) {
@@ -196,7 +198,9 @@ export async function handleSettingsPanel(
 			filteredKeys: newFilteredKeys,
 		});
 
-		await ctx.localizedAnswerCallbackQuery("panels.settings.messages.successUpdate")
+		await ctx.localizedAnswerCallbackQuery(
+			"panels.settings.messages.successUpdate",
+		);
 
 		return ctx.editMessageReplyMarkup({
 			reply_markup: newSettingsPanel,
@@ -213,14 +217,16 @@ export async function handleSettingsPanel(
 			})
 			.where(eq(ctx.dbSchemas.chats.chatId, chatId))
 			.returning({
-			[setting]: ctx.dbSchemas.chats[setting],
+				[setting]: ctx.dbSchemas.chats[setting],
 			});
 
 		const newSettingsPanel = await getSettingsPanel("home", locale, {
 			[setting]: newChat[setting],
 		});
 
-		await ctx.localizedAnswerCallbackQuery(`panels.settings.messages.toggles.${setting}.${newChat.enabled ? "on" : "off"}`)
+		await ctx.localizedAnswerCallbackQuery(
+			`panels.settings.messages.toggles.${setting}.${newChat.enabled ? "on" : "off"}`,
+		);
 
 		return ctx.editMessageReplyMarkup({
 			reply_markup: newSettingsPanel,
@@ -247,7 +253,9 @@ export async function handleSettingsPanel(
 			events: newEvents,
 		});
 
-		await ctx.localizedAnswerCallbackQuery("panels.settings.messages.successUpdate")
+		await ctx.localizedAnswerCallbackQuery(
+			"panels.settings.messages.successUpdate",
+		);
 
 		return ctx.editMessageReplyMarkup({
 			reply_markup: newSettingsPanel,
@@ -270,7 +278,10 @@ export async function handleSettingsPanel(
 			events: oldChat.events,
 		});
 
-		await ctx.localizedAnswerCallbackQuery("panels.settings.messages.successUpdate", locale)
+		await ctx.localizedAnswerCallbackQuery(
+			"panels.settings.messages.successUpdate",
+			locale,
+		);
 
 		return ctx.editMessageReplyMarkup({
 			reply_markup: newSettingsPanel,
@@ -278,64 +289,67 @@ export async function handleSettingsPanel(
 	}
 
 	if (value.startsWith("messages_")) {
-		await ctx.conversation.enter(conversationId)
+		await ctx.conversation.enter(conversationId);
 	}
 }
 
-export const conversationId = "settings_message_update"
+export const conversationId = "settings_message_update";
 
-export async function handleMessageConversation(conversation: Conversation, ctx: BaseContext) {
+export async function handleMessageConversation(
+	conversation: Conversation,
+	ctx: BaseContext,
+) {
 	const chat = await conversation.external((ctx) => {
 		if (!ctx.chatId) return undefined;
 
 		return db.query.chats.findFirst({
-			where: eq(dbSchemas.chats.chatId, ctx.chatId.toString())
-		})
-	})
+			where: eq(dbSchemas.chats.chatId, ctx.chatId.toString()),
+		});
+	});
 
 	if (!chat) {
 		await ctx.reply("Something went wrong");
 
-		return await conversation.halt()
+		return await conversation.halt();
 	}
-	
-	if (!ctx.from?.id || !ctx.callbackQuery?.data) return await ctx.reply(
-		await localize(chat.locale, "messages.error")
-	);
 
-	const messageType = ctx.callbackQuery.data.replace("settings__messages_", "")
+	if (!ctx.from?.id || !ctx.callbackQuery?.data)
+		return await ctx.reply(await localize(chat.locale, "messages.error"));
+
+	const messageType = ctx.callbackQuery.data.replace("settings__messages_", "");
 
 	await ctx.answerCallbackQuery(
-		await localize(chat.locale, `panels.settings.messages.changeMessages.${messageType}`)
-	)
-	
-	const {
-		msg: {
-			text,
-			entities
-		}
-	} = await conversation.waitFor("message:text", {
-		maxMilliseconds: 60000 // 1 minute
-	}).andFrom(ctx.from.id)
+		await localize(
+			chat.locale,
+			`panels.settings.messages.changeMessages.${messageType}`,
+		),
+	);
 
-	console.log(text, entities)
-	
-	// await conversation.external((ctx) => {
-	// 	if (!ctx.chatId) return undefined;
+	const { msg } = await conversation
+		.waitFor("message:text", {
+			maxMilliseconds: 60000, // 1 minute
+		})
+		.andFrom(ctx.from.id);
 
-	// 	return db
-	// 		.update(dbSchemas.chats)
-	// 		.set({
-	// 			[messageType]: text,
-	// 		})
-	// 		.where(
-	// 			eq(dbSchemas.chats.chatId, ctx.chatId.toString())
-	// 		)
-	// })
+	const parsedText = parse(msg);
 
-	// await ctx.reply(
-	// 	await localize(chat.locale, `panels.settings.messages.changeMessages.${messageType}.success`)
-	// );
+	await conversation.external((ctx) => {
+		if (!ctx.chatId) return undefined;
 
-	// return await conversation.halt();
+		return db
+			.update(dbSchemas.chats)
+			.set({
+				[messageType]: parsedText,
+			})
+			.where(eq(dbSchemas.chats.chatId, ctx.chatId.toString()));
+	});
+
+	await ctx.reply(
+		await localize(
+			chat.locale,
+			`panels.settings.messages.changeMessages.${messageType}.success`,
+		),
+	);
+
+	return await conversation.halt();
 }
