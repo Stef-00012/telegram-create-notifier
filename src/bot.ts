@@ -1,48 +1,45 @@
-import { Bot, InlineKeyboard, type Context as BaseContext } from "grammy";
-import { adminOnly, compareArrays, ownerOnly } from "@/functions/util";
+import { adminOnly, ownerOnly } from "@/functions/util";
 import type { Command, Event } from "@/types/handlers";
 import { autoThread } from "@grammyjs/auto-thread";
+import { autoRetry } from "@grammyjs/auto-retry";
+import { handleWS } from "@/functions/handleWS";
+import { localize } from "@/functions/localize";
 import type { BotCommand } from "grammy/types";
+import type { Context } from "@/types/grammy";
+import { Bot as GrammyBot } from "grammy";
 import schemas from "@/db/schema";
 import { config } from "$config";
-import WebSocket from "ws";
+import { eq } from "drizzle-orm";
 import db from "@/db/db";
 import fs from "node:fs";
 import {
-	type CreateMessage,
-	type PingMessage,
-	type PongMessage,
-	type UpdateMessage,
-	type WSAddon,
-	type WSAddonKeys,
-	WSEvents,
-} from "@/types/addonsWS";
+	type ConversationFlavor,
+	conversations,
+	createConversation,
+} from "@grammyjs/conversations";
+
+// conversations
 import {
-	addKeyNames,
-	removeKeyNames,
-	keyNames,
-	supportTypes,
-} from "@/constants/keys";
+	handleMessageConversation,
+	conversationId as handleMessageConversationId,
+} from "@/panels/settings";
 
-export interface Context extends BaseContext {
-	bot: Bot<Context>;
-	db: typeof db;
-	dbSchemas: typeof schemas;
-	config: typeof config;
+export type Config = typeof config;
+export type Schemas = typeof schemas;
+export type DB = typeof db;
+export type Bot = GrammyBot<ConversationFlavor<Context>>;
 
-	adminOnly: (ctx: Context) => Promise<boolean>;
-	ownerOnly: (ctx: Context) => boolean;
-}
-
-const bot = new Bot<Context>(config.token);
+const bot = new GrammyBot<ConversationFlavor<Context>>(config.token);
 
 bot.catch((error) => {
 	console.error(
-		`\x1b[31mC'è stato un errore nel bot:\n - Nome: \x1b[0;1m${error.name}\x1b[31m\n - Messaggio: \x1b[0;1m${error.message}\x1b[31m\n - Causa: \x1b[0;1m${error.cause}\x1b[31m`,
+		`\x1b[31mThere was an error in the bot:\n - Name: \x1b[0;1m${error.name}\x1b[31m\n - Message: \x1b[0;1m${error.message}\x1b[31m\n - Cause: \x1b[0;1m${error.cause}\x1b[31m`,
 		error.stack,
 		"\x1b[0m",
 	);
 });
+
+bot.api.config.use(autoRetry());
 
 bot.use(autoThread());
 bot.use(async (ctx, next) => {
@@ -51,11 +48,48 @@ bot.use(async (ctx, next) => {
 	ctx.dbSchemas = schemas;
 	ctx.config = config;
 
-	ctx.adminOnly = adminOnly;
-	ctx.ownerOnly = ownerOnly;
+	ctx.dbChat = undefined;
+
+	if (ctx.chatId) {
+		ctx.dbChat = await ctx.db.query.chats.findFirst({
+			where: eq(ctx.dbSchemas.chats.chatId, ctx.chatId.toString()),
+		});
+	}
+
+	ctx.locale = ctx.dbChat?.locale || "en";
+
+	ctx.localizedAnswerCallbackQuery = async (_other, _locale, signal) => {
+		let other = _other;
+
+		const locale = _locale || ctx.locale;
+
+		if (typeof other === "string") {
+			other = await localize(locale, other);
+		} else if (other?.text) {
+			other.text = await localize(locale, other.text);
+		}
+
+		return ctx.answerCallbackQuery(other, signal);
+	};
+
+	ctx.localizedReply = async (_text, other, _locale, signal) => {
+		const locale = _locale || ctx.locale;
+
+		const text = await localize(locale, _text);
+
+		return ctx.reply(text, other || undefined, signal);
+	};
+
+	ctx.isAdmin = await adminOnly(ctx);
+	ctx.isOwner = ownerOnly(ctx);
 
 	await next();
 });
+
+bot.use(conversations());
+bot.use(
+	createConversation(handleMessageConversation, handleMessageConversationId),
+);
 
 const suggestedCommands: BotCommand[] = [];
 
@@ -74,7 +108,7 @@ for (const event of events) {
 	bot.on(eventData.name, eventData.execute);
 
 	console.log(
-		`\x1b[34mCaricato l'evento "\x1b[0;1m${eventData.name}\x1b[0;34m"\x1b[0m`,
+		`\x1b[34mLoaded the event "\x1b[0;1m${eventData.name}\x1b[0;34m"\x1b[0m`,
 	);
 }
 
@@ -92,182 +126,12 @@ for (const command of commands) {
 	bot.command(commandData.name, commandData.execute);
 
 	console.log(
-		`\x1b[36mCaricato il comando "\x1b[0;1m${commandData.name}\x1b[0;36m"\x1b[0m`,
+		`\x1b[36mLoaded the command "\x1b[0;1m${commandData.name}\x1b[0;36m"\x1b[0m`,
 	);
 }
 
 bot.api.setMyCommands(suggestedCommands);
 
-handleWS();
+handleWS(bot);
 
 bot.start();
-
-function handleWS() {
-	const socket = new WebSocket(config.createAddonsWSURI);
-
-	socket.on("open", () => {
-		console.info(
-			"\x1b[32mConnesso al WebSocket per gli addon della create\x1b[0m",
-		);
-	});
-
-	socket.on("close", (code, reason) => {
-		console.warn(
-			`\x1b[31mDisconnesso dal WebSocket per gli addon della create:\n - Codice: \x1b[0;1m${code}\x1b[0;31m\n - Reason: \x1b[0;1m${reason}\x1b[0;31m\n\nTentativo di riconnessione fra 10 secondi\x1b[0m`,
-		);
-
-		setTimeout(handleWS, 10000);
-	});
-
-	socket.on("error", (error) => {
-		console.error("\x1b[31mErrore del WebSocket:", error, "\x1b[0m");
-	});
-
-	socket.on("message", async (data) => {
-		const message = JSON.parse(data.toString()) as
-			| CreateMessage
-			| UpdateMessage
-			| PingMessage;
-
-		if (message.type === WSEvents.PING) {
-			const pong: PongMessage = {
-				type: WSEvents.PONG,
-			};
-
-			socket.send(JSON.stringify(pong));
-		}
-
-		const chats = await db.query.chats.findMany();
-
-		if (message.type === WSEvents.CREATE) {
-			const data = message.data;
-
-			for (const chat of chats) {
-				if (!chat.enabled || !chat.events.includes("create")) continue;
-
-				for (const addon of data) {
-					const addonUrl = `https://modrinth.com/mod/${addon.slug}`;
-
-					const addonUrlButton = new InlineKeyboard()
-						.url("Apri su Modrinth", addonUrl)
-						.row();
-
-					const msgData = [
-						"<blockquote><b>Nuovo addon aggiunto</b></blockquote>",
-						`<b>Nome</b>: ${addon.name}`,
-						`<b>Descrizione</b>: ${addon.description}`,
-						`<b>Autore</b>: <a href="https://modrinth.com/user/${addon.author}">${addon.author}</a>`,
-						`<b>Versioni</b>${addon.versions.map((version: string) => `<code>${version}</code>`).join(", ")}`,
-						`<b>Data di Creazione</b>: ${new Date(addon.created).toLocaleString("it")}`,
-						`<b>Categorie</b>: ${addon.categories.map((category: string) => `<code>${category}</code>`).join(", ")}`,
-						`<b>Client Side</b>: ${supportTypes[addon.clientSide]}`,
-						`<b>Server Side</b>: ${supportTypes[addon.serverSide]}`,
-						`<b>Modloaders</b>: ${addon.modloaders.map((modloader: string) => `<code>${modloader}</code>`).join(", ")}`,
-					];
-
-					bot.api.sendMessage(chat.chatId, msgData.join("\n"), {
-						message_thread_id: chat.topicId
-							? Number.parseInt(chat.topicId)
-							: undefined,
-						parse_mode: "HTML",
-						reply_markup: addonUrlButton,
-						link_preview_options: {
-							is_disabled: true,
-						},
-					});
-				}
-			}
-		}
-
-		if (message.type === WSEvents.UPDATE) {
-			const data = message.data;
-
-			for (const chat of chats) {
-				if (!chat.enabled || !chat.events.includes("update")) continue;
-
-				for (const addon of data) {
-					if (
-						Object.keys(addon.changes).every(
-							(key) => !chat.filteredKeys.includes(key as keyof WSAddon),
-						)
-					)
-						continue;
-
-					const addonUrl = `https://modrinth.com/mod/${addon.slug}`;
-
-					const addonUrlButton = new InlineKeyboard()
-						.url("Apri su Modrinth", addonUrl)
-						.row();
-
-					const msgData = [
-						"<blockquote><b>Addon aggiornato</b></blockquote>",
-						`<b>Nome</b>: ${addon.name}`,
-					];
-
-					for (const _key in addon.changes) {
-						const key = _key as WSAddonKeys;
-
-						if (!chat.filteredKeys.includes(key)) continue;
-
-						if (
-							Array.isArray(addon.changes[key].old) &&
-							Array.isArray(addon.changes[key].new)
-						) {
-							const { removed, added } = compareArrays(
-								addon.changes[key].old,
-								addon.changes[key].new,
-							);
-
-							msgData.push(
-								`<b>${keyNames[key]}</b>:${
-									added.length > 0
-										? `\n    - ${addKeyNames[key]}: ${added.map((version) => `<code>${version}</code>`).join(", ")}`
-										: ""
-								}${
-									removed.length > 0
-										? `\n    - ${removeKeyNames[key]}: ${removed.map((version) => `<code>${version}</code>`).join(", ")}`
-										: ""
-								}`,
-							);
-						} else {
-							let oldValue = addon.changes[key].old;
-							let newValue = addon.changes[key].new;
-
-							if (["clientSide", "serverSide"].includes(key)) {
-								oldValue = supportTypes[oldValue as keyof typeof supportTypes];
-								newValue = supportTypes[newValue as keyof typeof supportTypes];
-							}
-							
-							if (["created", "modified"].includes(key)) {
-							    oldValue = new Date(oldValue as WSAddon["created"]).toLocaleString("it")
-							    newValue = new Date(newValue as WSAddon["created"]).toLocaleString("it")
-							}
-							
-							if (key === "icon") {
-							    oldValue = `<a href="${oldValue}">Vecchia</a>`
-							    newValue = `<a href="${newValue}">Nuova</a>`
-							}
-
-							msgData.push(
-								`<b>${keyNames[key]}</b>: ${oldValue} => ${newValue}`,
-							);
-						}
-					}
-
-					const msg = msgData.join("\n");
-
-					bot.api.sendMessage(chat.chatId, msg, {
-						message_thread_id: chat.topicId
-							? Number.parseInt(chat.topicId)
-							: undefined,
-						parse_mode: "HTML",
-						reply_markup: addonUrlButton,
-						link_preview_options: {
-							is_disabled: true,
-						},
-					});
-				}
-			}
-		}
-	});
-}

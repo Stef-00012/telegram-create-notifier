@@ -12,9 +12,10 @@ export default {
 			return await handleSettingsPanel(
 				ctx,
 				value.replace("settings__", ""),
+				ctx.locale,
 				chatId,
 			);
 
-		await ctx.answerCallbackQuery("Qualcosa è andati storto");
+		await ctx.localizedAnswerCallbackQuery("messages.error");
 	},
 } satisfies Event<"callback_query:data">;

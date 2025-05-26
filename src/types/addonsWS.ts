@@ -37,7 +37,7 @@ export interface UpdateMessage extends WSmessage {
 		slug: WSAddon["slug"];
 		platform: WSAddon["platform"];
 		name: WSAddon["name"];
-		changes: Record<WSAddonKeys, UpdateMessageValues>;
+		changes: Partial<Record<WSAddonKeys, UpdateMessageValues>>;
 	}[];
 }
 
