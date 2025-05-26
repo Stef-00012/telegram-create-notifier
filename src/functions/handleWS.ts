@@ -1,9 +1,14 @@
-import { getNewAddonVariables, getUpdatedAddonVariables, parseVariables } from "@/functions/util";
-import { type Bot, InlineKeyboard } from "grammy";
-import type { Context } from "@/types/grammy";
+import { localize } from "@/functions/localize";
+import { InlineKeyboard } from "grammy";
+import type { Bot } from "@/bot";
 import { config } from "$config";
 import WebSocket from "ws";
 import db from "@/db/db";
+import {
+	getNewAddonVariables,
+	getUpdatedAddonVariables,
+	parseVariables,
+} from "@/functions/util";
 import {
 	type CreateMessage,
 	type PingMessage,
@@ -12,16 +17,12 @@ import {
 	type WSAddon,
 	WSEvents,
 } from "@/types/addonsWS";
-import type { ConversationFlavor } from "@grammyjs/conversations";
-import { localize } from "@/functions/localize";
 
-export function handleWS(bot: Bot<ConversationFlavor<Context>>): void {
+export function handleWS(bot: Bot): void {
 	const socket = new WebSocket(config.createAddonsWSURI);
 
 	socket.on("open", () => {
-		console.info(
-			"\x1b[32mConnected to the create addons WebSocket\x1b[0m",
-		);
+		console.info("\x1b[32mConnected to the create addons WebSocket\x1b[0m");
 	});
 
 	socket.on("close", (code, reason) => {
@@ -68,7 +69,7 @@ export function handleWS(bot: Bot<ConversationFlavor<Context>>): void {
 						)
 						.row();
 
-					const variables = await getNewAddonVariables(addon, chat.locale)
+					const variables = await getNewAddonVariables(addon, chat.locale);
 
 					const msg = parseVariables(chat.newAddonMessage, variables);
 
@@ -109,7 +110,7 @@ export function handleWS(bot: Bot<ConversationFlavor<Context>>): void {
 						)
 						.row();
 
-					const variables = await getUpdatedAddonVariables(addon, chat.locale)
+					const variables = await getUpdatedAddonVariables(addon, chat.locale);
 
 					const msg = parseVariables(chat.updatedAddonMessage, variables);
 

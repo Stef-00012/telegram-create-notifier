@@ -31,9 +31,13 @@ export default {
 				target: ctx.dbSchemas.chats.chatId,
 			})
 			.returning({
-				locale: ctx.dbSchemas.chats.locale
+				locale: ctx.dbSchemas.chats.locale,
 			});
 
-		return await ctx.localizedReply("commands.setchannel.messages.success", null, newChat.locale)
+		return await ctx.localizedReply(
+			"commands.setchannel.messages.success",
+			null,
+			newChat.locale,
+		);
 	},
 } satisfies Command;

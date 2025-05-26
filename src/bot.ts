@@ -1,4 +1,3 @@
-import { Bot } from "grammy";
 import { adminOnly, ownerOnly } from "@/functions/util";
 import type { Command, Event } from "@/types/handlers";
 import { autoThread } from "@grammyjs/auto-thread";
@@ -7,25 +6,30 @@ import { handleWS } from "@/functions/handleWS";
 import { localize } from "@/functions/localize";
 import type { BotCommand } from "grammy/types";
 import type { Context } from "@/types/grammy";
+import { Bot as GrammyBot } from "grammy";
 import schemas from "@/db/schema";
 import { config } from "$config";
 import { eq } from "drizzle-orm";
 import db from "@/db/db";
 import fs from "node:fs";
 import {
-  type ConversationFlavor,
-  conversations,
-  createConversation,
+	type ConversationFlavor,
+	conversations,
+	createConversation,
 } from "@grammyjs/conversations";
 
 // conversations
-import { handleMessageConversation, conversationId as handleMessageConversationId } from "@/panels/settings";
+import {
+	handleMessageConversation,
+	conversationId as handleMessageConversationId,
+} from "@/panels/settings";
 
 export type Config = typeof config;
 export type Schemas = typeof schemas;
 export type DB = typeof db;
+export type Bot = GrammyBot<ConversationFlavor<Context>>;
 
-const bot = new Bot<ConversationFlavor<Context>>(config.token);
+const bot = new GrammyBot<ConversationFlavor<Context>>(config.token);
 
 bot.catch((error) => {
 	console.error(
@@ -35,7 +39,7 @@ bot.catch((error) => {
 	);
 });
 
-bot.api.config.use(autoRetry())
+bot.api.config.use(autoRetry());
 
 bot.use(autoThread());
 bot.use(async (ctx, next) => {
@@ -49,7 +53,7 @@ bot.use(async (ctx, next) => {
 	if (ctx.chatId) {
 		ctx.dbChat = await ctx.db.query.chats.findFirst({
 			where: eq(ctx.dbSchemas.chats.chatId, ctx.chatId.toString()),
-		})
+		});
 	}
 
 	ctx.locale = ctx.dbChat?.locale || "en";
@@ -60,21 +64,21 @@ bot.use(async (ctx, next) => {
 		const locale = _locale || ctx.locale;
 
 		if (typeof other === "string") {
-			other = await localize(locale, other)
+			other = await localize(locale, other);
 		} else if (other?.text) {
-			other.text = await localize(locale, other.text)
+			other.text = await localize(locale, other.text);
 		}
 
-		return ctx.answerCallbackQuery(other, signal)
-	}
+		return ctx.answerCallbackQuery(other, signal);
+	};
 
 	ctx.localizedReply = async (_text, other, _locale, signal) => {
 		const locale = _locale || ctx.locale;
 
 		const text = await localize(locale, _text);
 
-		return ctx.reply(text, (other || undefined), signal)
-	}
+		return ctx.reply(text, other || undefined, signal);
+	};
 
 	ctx.isAdmin = await adminOnly(ctx);
 	ctx.isOwner = ownerOnly(ctx);
@@ -82,8 +86,10 @@ bot.use(async (ctx, next) => {
 	await next();
 });
 
-bot.use(conversations())
-bot.use(createConversation(handleMessageConversation, handleMessageConversationId))
+bot.use(conversations());
+bot.use(
+	createConversation(handleMessageConversation, handleMessageConversationId),
+);
 
 const suggestedCommands: BotCommand[] = [];
 
@@ -129,4 +135,3 @@ bot.api.setMyCommands(suggestedCommands);
 handleWS(bot);
 
 bot.start();
-

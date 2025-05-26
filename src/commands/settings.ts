@@ -10,7 +10,7 @@ export default {
 		if (!ctx.isAdmin) return;
 
 		if (!ctx.dbChat)
-			return ctx.localizedReply("commands.settings.messages.notConfigured")
+			return ctx.localizedReply("commands.settings.messages.notConfigured");
 
 		const settingsPanel = await getSettingsPanel("home", ctx.locale, {
 			enabled: ctx.dbChat.enabled,

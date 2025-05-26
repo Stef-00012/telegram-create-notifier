@@ -87,8 +87,7 @@ export async function getNewAddonVariables(data: WSAddon, locale: string) {
 		else if (key === "author") {
 			output[key] = value;
 			output.authorUrl = `https://modrinth.com/user/${value}`;
-		}
-		else output[key] = value;
+		} else output[key] = value;
 	}
 
 	return output;
