@@ -46,11 +46,11 @@ export async function getSettingsPanel(
 				"settings__go_locales",
 			)
 			.row()
-			.text(
-				await localize(locale, "panels.settings.buttons.changeMessages"),
-				"settings__go_messages",
-			)
-			.row()
+			// .text(
+			// 	await localize(locale, "panels.settings.buttons.changeMessages"),
+			// 	"settings__go_messages",
+			// )
+			// .row()
 			.text(
 				`${data?.enabled ? "✔️ " : ""}${await localize(
 					locale,
@@ -127,23 +127,27 @@ export async function getSettingsPanel(
 			"settings__go_home",
 		);
 	} else if (section === "messages") {
-		settingsPanel
-			.text(
-				await localize(
-					locale,
-					"panels.settings.buttons.changeMessages.newAddon",
-				),
-				"settings__messages_newAddonMessage",
-			)
-			.text(
-				await localize(
-					locale,
-					"panels.settings.buttons.changeMessages.updatedAddon",
-				),
-				"settings__messages_updatedAddonMessage",
-			)
-			.row()
-			.text(await localize(locale, "panels.buttons.back"), "settings__go_home");
+		// TEMP
+			await getSettingsPanel("home", locale, data)
+		// TEMP
+
+		// settingsPanel
+		// 	.text(
+		// 		await localize(
+		// 			locale,
+		// 			"panels.settings.buttons.changeMessages.newAddon",
+		// 		),
+		// 		"settings__messages_newAddonMessage",
+		// 	)
+		// 	.text(
+		// 		await localize(
+		// 			locale,
+		// 			"panels.settings.buttons.changeMessages.updatedAddon",
+		// 		),
+		// 		"settings__messages_updatedAddonMessage",
+		// 	)
+		// 	.row()
+		// 	.text(await localize(locale, "panels.buttons.back"), "settings__go_home");
 	}
 
 	return settingsPanel;
@@ -283,9 +287,12 @@ export async function handleSettingsPanel(
 			locale,
 		);
 
-		return ctx.editMessageReplyMarkup({
-			reply_markup: newSettingsPanel,
-		});
+		return ctx.editMessageText(
+			await localize(locale, "commands.settings.messages.success"),
+			{
+				reply_markup: newSettingsPanel,
+			}
+		)
 	}
 
 	if (value.startsWith("messages_")) {
@@ -324,6 +331,14 @@ export async function handleMessageConversation(
 			`panels.settings.messages.changeMessages.${messageType}`,
 		),
 	);
+
+	await ctx.reply(
+		await localize(chat.locale, `panels.settings.messages.changeMessages.${messageType}.variables`)
+		, {
+		reply_markup: {
+			force_reply: true,
+		},
+	})
 
 	const { msg } = await conversation
 		.waitFor("message:text", {
