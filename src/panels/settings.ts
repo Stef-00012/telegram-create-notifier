@@ -327,7 +327,7 @@ export async function handleMessageConversation(
 
 	const { msg } = await conversation
 		.waitFor("message:text", {
-			maxMilliseconds: 60000, // 1 minute
+			maxMilliseconds: 1000 * 60 * 5, // 5 minutes
 		})
 		.andFrom(ctx.from.id);
 
