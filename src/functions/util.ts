@@ -47,7 +47,7 @@ export function parse(message: Message) {
 
 function parseConditional(text: string, variables: Record<string, string>) {
 	const conditionalRegex =
-		/\[\[\?(?<variable>.*?):(?<trueMsg>.*?)\|(?<falseMsg>.*?)\?\]\]/gim;
+		/\[\[\?(?<variable>.*?):(?<trueMsg>.*?)\|(?<falseMsg>.*?)\?\]\]/gims;
 
 	return text.replace(
 		conditionalRegex,
