@@ -1,22 +1,11 @@
-import path from "node:path";
-import fs from "node:fs";
+import { locales } from "@/bot";
 
-const localesDir = path.join(__dirname, "../locales");
+export function localize(locale: string, key: string): string {
+	if (!(locale in locales))
+		return `<Unknown locale "${locale}" (key: "${key}")>`;
 
-export async function localize(locale: string, key: string): Promise<string> {
-	try {
-		if (!fs.existsSync(`${localesDir}/${locale}.json`)) {
-			return `<Unknown locale "${locale}">`;
-		}
-
-		const localeData: Record<string, string> = await import(
-			`${localesDir}/${locale}.json`
-		);
-
-		if (localeData[key]) return localeData[key];
-
-		return `<Missing translation for "${key}">`;
-	} catch (e) {
-		return `<Unknown locale "${locale}">`;
-	}
+	return (
+		locales[locale][key] ??
+		`<Missing translation for "${key}" (locale: "${locale}")>`
+	);
 }

@@ -1,15 +1,13 @@
-import { adminOnly, ownerOnly } from "@/functions/util";
 import type { Command, Event } from "@/types/handlers";
+import type { Context } from "@/types/grammy";
 import { autoThread } from "@grammyjs/auto-thread";
 import { autoRetry } from "@grammyjs/auto-retry";
 import { handleWS } from "@/functions/handleWS";
-import { localize } from "@/functions/localize";
 import type { BotCommand } from "grammy/types";
-import type { Context } from "@/types/grammy";
+import { hydrate, type HydrateFlavor } from "@grammyjs/hydrate";
 import { Bot as GrammyBot } from "grammy";
 import schemas from "@/db/schema";
 import { config } from "$config";
-import { eq } from "drizzle-orm";
 import db from "@/db/db";
 import fs from "node:fs";
 import {
@@ -23,13 +21,15 @@ import {
 	handleMessageConversation,
 	conversationId as handleMessageConversationId,
 } from "@/panels/settings";
+import { utilMiddleware } from "@/middlewares/util";
 
 export type Config = typeof config;
 export type Schemas = typeof schemas;
 export type DB = typeof db;
-export type Bot = GrammyBot<ConversationFlavor<Context>>;
+export type BotContext = HydrateFlavor<Context>
+export type Bot = GrammyBot<ConversationFlavor<BotContext>>;
 
-const bot = new GrammyBot<ConversationFlavor<Context>>(config.token);
+const bot = new GrammyBot<ConversationFlavor<BotContext>>(config.token);
 
 bot.catch((error) => {
 	console.error(
@@ -41,53 +41,24 @@ bot.catch((error) => {
 
 bot.api.config.use(autoRetry());
 
-bot.use(autoThread());
-bot.use(async (ctx, next) => {
-	ctx.bot = bot;
-	ctx.db = db;
-	ctx.dbSchemas = schemas;
-	ctx.config = config;
-
-	ctx.dbChat = undefined;
-
-	if (ctx.chatId) {
-		ctx.dbChat = await ctx.db.query.chats.findFirst({
-			where: eq(ctx.dbSchemas.chats.chatId, ctx.chatId.toString()),
-		});
-	}
-
-	ctx.locale = ctx.dbChat?.locale || "en";
-
-	ctx.localizedAnswerCallbackQuery = async (_other, _locale, signal) => {
-		let other = _other;
-
-		const locale = _locale || ctx.locale;
-
-		if (typeof other === "string") {
-			other = await localize(locale, other);
-		} else if (other?.text) {
-			other.text = await localize(locale, other.text);
-		}
-
-		return ctx.answerCallbackQuery(other, signal);
-	};
-
-	ctx.localizedReply = async (_text, other, _locale, signal) => {
-		const locale = _locale || ctx.locale;
-
-		const text = await localize(locale, _text);
-
-		return ctx.reply(text, other || undefined, signal);
-	};
-
-	ctx.isAdmin = await adminOnly(ctx);
-	ctx.isOwner = ownerOnly(ctx);
-
-	await next();
-});
-
-bot.use(conversations());
 bot.use(
+	autoThread(),
+	hydrate(),
+	utilMiddleware(bot, db, schemas, config),
+	conversations<
+		ConversationFlavor<Context>,
+		BotContext
+	>({
+		plugins: async (conversation) => {
+			return [
+				autoThread(),
+				hydrate(),
+				utilMiddleware(bot, db, schemas, config, conversation),
+				
+			]
+		}
+	}),
+
 	createConversation(handleMessageConversation, handleMessageConversationId),
 );
 
@@ -100,6 +71,12 @@ const events = fs
 const commands = fs
 	.readdirSync(`${__dirname}/commands`)
 	.filter((file) => file.endsWith(".ts"));
+
+const localeFiles = fs
+	.readdirSync(`${__dirname}/locales`)
+	.filter((file) => file.endsWith(".json"));
+
+export const locales: Record<string, Record<string, string>> = {};
 
 for (const event of events) {
 	const eventData = (await import(`${__dirname}/events/${event}`))
@@ -127,6 +104,17 @@ for (const command of commands) {
 
 	console.log(
 		`\x1b[36mLoaded the command "\x1b[0;1m${commandData.name}\x1b[0;36m"\x1b[0m`,
+	);
+}
+
+for (const localeFile of localeFiles) {
+	const localeData = (await import(`${__dirname}/locales/${localeFile}`))
+		.default as Record<string, string>;
+
+	locales[localeFile.split(".")[0]] = localeData
+
+	console.log(
+		`\x1b[34mLoaded the locale "\x1b[0;1m${localeFile.split(".")[0]}\x1b[0;34m"\x1b[0m`,
 	);
 }
 

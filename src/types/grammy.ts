@@ -1,4 +1,4 @@
-import type { Bot, Config, DB, Schemas } from "@/bot";
+import type { Bot, BotContext, Config, DB, Schemas } from "@/bot";
 import type { Context as BaseContext } from "grammy";
 import type {
 	Conversation as BaseConversation,
@@ -32,5 +32,5 @@ export interface Context extends BaseContext {
 
 export type Conversation = BaseConversation<
 	ConversationFlavor<Context>,
-	Context
+	BotContext
 >;

@@ -64,7 +64,7 @@ export function handleWS(bot: Bot): void {
 
 					const addonUrlButton = new InlineKeyboard()
 						.url(
-							await localize(chat.locale, "websocket.messages.openOnModrinth"),
+							localize(chat.locale, "websocket.messages.openOnModrinth"),
 							addonUrl,
 						)
 						.row();
@@ -105,7 +105,7 @@ export function handleWS(bot: Bot): void {
 
 					const addonUrlButton = new InlineKeyboard()
 						.url(
-							await localize(chat.locale, "websocket.messages.openOnModrinth"),
+							localize(chat.locale, "websocket.messages.openOnModrinth"),
 							addonUrl,
 						)
 						.row();

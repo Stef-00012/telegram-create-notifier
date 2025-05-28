@@ -3,13 +3,13 @@ import type { DBEvents } from "@/db/schemas/chats";
 import { localize } from "@/functions/localize";
 import { settingKeys } from "@/constants/keys";
 import { InlineKeyboard } from "grammy";
-import type { Context, Conversation } from "@/types/grammy";
-import type { Context as BaseContext } from "grammy";
+import type { Conversation } from "@/types/grammy";
+import type { BotContext as Context } from "@/bot";
 import type { ConversationFlavor } from "@grammyjs/conversations";
 import { eq } from "drizzle-orm";
 import path from "node:path";
 import fs from "node:fs";
-import db from "@/db/db";
+// import db from "@/db/db";
 import dbSchemas from "@/db/schema";
 import { parse } from "@/functions/util";
 interface Data {
@@ -32,27 +32,27 @@ export async function getSettingsPanel(
 	if (section === "home") {
 		settingsPanel
 			.text(
-				await localize(locale, "panels.settings.buttons.goFilters"),
+				localize(locale, "panels.settings.buttons.goFilters"),
 				"settings__go_filters",
 			)
 			.row()
 			.text(
-				await localize(locale, "panels.settings.buttons.goEvents"),
+				localize(locale, "panels.settings.buttons.goEvents"),
 				"settings__go_events",
 			)
 			.row()
 			.text(
-				await localize(locale, "panels.settings.buttons.goLocales"),
+				localize(locale, "panels.settings.buttons.goLocales"),
 				"settings__go_locales",
 			)
 			.row()
-			// .text(
-			// 	await localize(locale, "panels.settings.buttons.changeMessages"),
-			// 	"settings__go_messages",
-			// )
-			// .row()
 			.text(
-				`${data?.enabled ? "✔️ " : ""}${await localize(
+				localize(locale, "panels.settings.buttons.changeMessages"),
+				"settings__go_messages",
+			)
+			.row()
+			.text(
+				`${data?.enabled ? "✔️ " : ""}${localize(
 					locale,
 					"panels.settings.buttons.notifications",
 				)}`,
@@ -63,7 +63,7 @@ export async function getSettingsPanel(
 
 		for (const key of settingKeys) {
 			settingsPanel.text(
-				`${data?.filteredKeys?.includes(key) ? "✔️ " : ""}${await localize(
+				`${data?.filteredKeys?.includes(key) ? "✔️ " : ""}${localize(
 					locale,
 					`panels.settings.buttons.filters.${key}`,
 				)}`,
@@ -79,27 +79,27 @@ export async function getSettingsPanel(
 		}
 
 		settingsPanel.text(
-			await localize(locale, "panels.buttons.back"),
+			localize(locale, "panels.buttons.back"),
 			"settings__go_home",
 		);
 	} else if (section === "events") {
 		settingsPanel
 			.text(
-				`${data?.events?.includes("create") ? "✔️ " : ""}${await localize(
+				`${data?.events?.includes("create") ? "✔️ " : ""}${localize(
 					locale,
 					"panels.settings.buttons.events.newAddon",
 				)}`,
 				"settings__events_create",
 			)
 			.text(
-				`${data?.events?.includes("update") ? "✔️ " : ""}${await localize(
+				`${data?.events?.includes("update") ? "✔️ " : ""}${localize(
 					locale,
 					"panels.settings.buttons.events.updatedAddon",
 				)}`,
 				"settings__events_update",
 			)
 			.row()
-			.text(await localize(locale, "panels.buttons.back"), "settings__go_home");
+			.text(localize(locale, "panels.buttons.back"), "settings__go_home");
 	} else if (section === "locales") {
 		const locales = fs
 			.readdirSync(localesDir)
@@ -123,31 +123,27 @@ export async function getSettingsPanel(
 		}
 
 		settingsPanel.text(
-			await localize(locale, "panels.buttons.back"),
+			localize(locale, "panels.buttons.back"),
 			"settings__go_home",
 		);
 	} else if (section === "messages") {
-		// TEMP
-			await getSettingsPanel("home", locale, data)
-		// TEMP
-
-		// settingsPanel
-		// 	.text(
-		// 		await localize(
-		// 			locale,
-		// 			"panels.settings.buttons.changeMessages.newAddon",
-		// 		),
-		// 		"settings__messages_newAddonMessage",
-		// 	)
-		// 	.text(
-		// 		await localize(
-		// 			locale,
-		// 			"panels.settings.buttons.changeMessages.updatedAddon",
-		// 		),
-		// 		"settings__messages_updatedAddonMessage",
-		// 	)
-		// 	.row()
-		// 	.text(await localize(locale, "panels.buttons.back"), "settings__go_home");
+		settingsPanel
+			.text(
+				localize(
+					locale,
+					"panels.settings.buttons.changeMessages.newAddon",
+				),
+				"settings__messages_newAddonMessage",
+			)
+			.text(
+				localize(
+					locale,
+					"panels.settings.buttons.changeMessages.updatedAddon",
+				),
+				"settings__messages_updatedAddonMessage",
+			)
+			.row()
+			.text(localize(locale, "panels.buttons.back"), "settings__go_home");
 	}
 
 	return settingsPanel;
@@ -288,7 +284,7 @@ export async function handleSettingsPanel(
 		);
 
 		return ctx.editMessageText(
-			await localize(locale, "commands.settings.messages.success"),
+			localize(locale, "commands.settings.messages.success"),
 			{
 				reply_markup: newSettingsPanel,
 			}
@@ -304,41 +300,38 @@ export const conversationId = "settings_message_update";
 
 export async function handleMessageConversation(
 	conversation: Conversation,
-	ctx: BaseContext,
+	ctx: Context,
 ) {
-	const chat = await conversation.external((ctx) => {
-		if (!ctx.chatId) return undefined;
+	// const chat = await conversation.external((ctx) => {
+	// 	if (!ctx.chatId) return undefined;
 
-		return db.query.chats.findFirst({
-			where: eq(dbSchemas.chats.chatId, ctx.chatId.toString()),
-		});
-	});
+	// 	return db.query.chats.findFirst({
+	// 		where: eq(dbSchemas.chats.chatId, ctx.chatId.toString()),
+	// 	});
+	// });
 
-	if (!chat) {
-		await ctx.reply("Something went wrong");
+	// if (!chat) {
+	if (!ctx.dbChat) {
+		await ctx.localizedReply("messages.error");
 
 		return await conversation.halt();
 	}
 
 	if (!ctx.from?.id || !ctx.callbackQuery?.data)
-		return await ctx.reply(await localize(chat.locale, "messages.error"));
+		return await ctx.localizedReply("messages.error");
 
 	const messageType = ctx.callbackQuery.data.replace("settings__messages_", "");
 
-	await ctx.answerCallbackQuery(
-		await localize(
-			chat.locale,
-			`panels.settings.messages.changeMessages.${messageType}`,
-		),
-	);
+	await ctx.localizedAnswerCallbackQuery(`panels.settings.messages.changeMessages.${messageType}`)
 
-	await ctx.reply(
-		await localize(chat.locale, `panels.settings.messages.changeMessages.${messageType}.variables`)
-		, {
-		reply_markup: {
-			force_reply: true,
-		},
-	})
+	await ctx.localizedReply(
+		`panels.settings.messages.changeMessages.${messageType}.variables`,
+		{
+			reply_markup: {
+				force_reply: true,
+			},
+			parse_mode: "HTML",
+		})
 
 	const { msg } = await conversation
 		.waitFor("message:text", {
@@ -351,7 +344,8 @@ export async function handleMessageConversation(
 	await conversation.external((ctx) => {
 		if (!ctx.chatId) return undefined;
 
-		return db
+		// return db
+		return ctx.db
 			.update(dbSchemas.chats)
 			.set({
 				[messageType]: parsedText,
@@ -359,12 +353,7 @@ export async function handleMessageConversation(
 			.where(eq(dbSchemas.chats.chatId, ctx.chatId.toString()));
 	});
 
-	await ctx.reply(
-		await localize(
-			chat.locale,
-			`panels.settings.messages.changeMessages.${messageType}.success`,
-		),
-	);
+	await ctx.localizedReply(`panels.settings.messages.changeMessages.${messageType}.success`)
 
 	return await conversation.halt();
 }

@@ -12,7 +12,7 @@ export default {
 
 		const openSourceButton = new InlineKeyboard()
 			.url(
-				await localize(ctx.locale, "commands.start.buttons.viewSource"),
+				localize(ctx.locale, "commands.start.buttons.viewSource"),
 				"https://github.com/Stef-00012/telegram-create-notifier",
 			)
 			.row();

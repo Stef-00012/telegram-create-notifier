@@ -1,4 +1,4 @@
-import type { Context } from "@/types/grammy";
+import type { BotContext as Context } from "@/bot";
 import { EntitiesParser } from "@qz/telegram-entities-parser";
 import type { Message } from "@qz/telegram-entities-parser/types";
 import { localize } from "@/functions/localize";
@@ -47,7 +47,7 @@ export function parse(message: Message) {
 
 function parseConditional(text: string, variables: Record<string, string>) {
 	const conditionalRegex =
-		/\[\[\?(?<variable>.*?):(?<trueMsg>.*?)\|(?<falseMsg>.*?)\?\]\]/gims;
+		/{{\?(?<variable>.+?):(?<trueMsg>.*?)\|(?<falseMsg>.*?)\?}}/gims;
 
 	return text.replace(
 		conditionalRegex,
@@ -62,7 +62,7 @@ export function parseVariables(
 	_text: string,
 	variables: Record<string, string>,
 ) {
-	const variableRegex = /\[\[(?<variable>.*?)\]\]/gim;
+	const variableRegex = /{{(?<variable>[^{}]+?)}}/gim;
 
 	const text = parseConditional(_text, variables);
 
@@ -80,7 +80,7 @@ export async function getNewAddonVariables(data: WSAddon, locale: string) {
 		else if (key === "created" || key === "modified")
 			output[key] = new Date(value).toLocaleString(locale);
 		else if (key === "clientSide" || key === "serverSide")
-			output[key] = await localize(
+			output[key] = localize(
 				locale,
 				`websocket.variables.clientServerSide.${value}`,
 			);
@@ -120,11 +120,11 @@ export async function getUpdatedAddonVariables(
 				locale,
 			);
 		} else if (key === "clientSide" || key === "serverSide") {
-			output[`old${baseKey}`] = await localize(
+			output[`old${baseKey}`] = localize(
 				locale,
 				`websocket.variables.clientServerSide.${value.old}`,
 			);
-			output[`new${baseKey}`] = await localize(
+			output[`new${baseKey}`] = localize(
 				locale,
 				`websocket.variables.clientServerSide.${value.new}`,
 			);

@@ -1,4 +1,4 @@
-import type { Context } from "@/types/grammy";
+import type { BotContext as Context } from "@/bot";
 import type { ConversationFlavor } from "@grammyjs/conversations";
 import type {
 	FilterQuery,
