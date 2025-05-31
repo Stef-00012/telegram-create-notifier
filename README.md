@@ -12,3 +12,7 @@ The bot can also just be used [here](https://t.me/CreateAddonsNotifierBot).
 2. `bun install`
 3. `bun run db:setup`
 4. `bun run start`
+
+# TO-DO
+
+- [ ] Fix default value for update message (italian names => english names)
