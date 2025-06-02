@@ -52,7 +52,7 @@ export function handleWS(bot: Bot): void {
 		if (message.type === WSEvents.CREATE) {
 			const data = message.data;
 
-			console.log(data)
+			console.log(data);
 
 			for (const chat of chats) {
 				if (!chat.enabled || !chat.events.includes("create")) continue;
@@ -80,7 +80,10 @@ export function handleWS(bot: Bot): void {
 
 					const msg = parseVariables(
 						chat.newAddonMessage,
-						addon.modData,
+						{
+							platforms: addon.platforms,
+							...addon.modData,
+						},
 						chat.locale,
 					);
 

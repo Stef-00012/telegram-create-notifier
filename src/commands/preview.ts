@@ -1,6 +1,4 @@
-import {
-	parseVariables,
-} from "@/functions/util";
+import { parseVariables } from "@/functions/util";
 import type { CreateMessage, UpdateMessage } from "@/types/addonsWS";
 import type { Command } from "@/types/handlers";
 
@@ -9,10 +7,12 @@ const newAddon: CreateMessage["data"][0] = {
 	modData: {
 		curseforge: {
 			slug: "create",
-			authors: [{
-				name: "simibubi",
-				url: "https://www.curseforge.com/members/simibubi"
-			}],
+			authors: [
+				{
+					name: "simibubi",
+					url: "https://www.curseforge.com/members/simibubi",
+				},
+			],
 			downloads: 4160282,
 			description: "Aesthetic Technology that empowers the Player",
 			icon: "https://cdn.modrinth.com/data/LNytGWDc/61d716699bcf1ec42ed4926a9e1c7311be6087e2_96.webp",
@@ -28,14 +28,16 @@ const newAddon: CreateMessage["data"][0] = {
 			clientSide: "required",
 			serverSide: "required",
 			modloaders: ["forge", "neoforge"],
-			id: "aa"
+			id: "aa",
 		},
 		modrinth: {
 			slug: "create",
-			authors: [{
-				name: "simibubi",
-				url: "https://modrinth.com/user/simibubi"
-			}],
+			authors: [
+				{
+					name: "simibubi",
+					url: "https://modrinth.com/user/simibubi",
+				},
+			],
 			downloads: 4160282,
 			description: "Aesthetic Technology that empowers the Player",
 			icon: "https://cdn.modrinth.com/data/LNytGWDc/61d716699bcf1ec42ed4926a9e1c7311be6087e2_96.webp",
@@ -51,9 +53,9 @@ const newAddon: CreateMessage["data"][0] = {
 			clientSide: "required",
 			serverSide: "required",
 			modloaders: ["forge", "neoforge"],
-			id: "aa"
-		}
-	}
+			id: "aa",
+		},
+	},
 };
 
 const updatedAddon: UpdateMessage["data"][0] = {
@@ -179,7 +181,7 @@ const updatedAddon: UpdateMessage["data"][0] = {
 				old: "MIT",
 				new: "Apache-2.0",
 			},
-		}
+		},
 	},
 };
 
@@ -199,7 +201,14 @@ export default {
 		if (args[0] === "new") {
 			const msg = ctx.dbChat.newAddonMessage;
 
-			const parsedMessage = parseVariables(msg, newAddon.modData, ctx.locale);
+			const parsedMessage = parseVariables(
+				msg,
+				{
+					platforms: newAddon.platforms,
+					...newAddon.modData,
+				},
+				ctx.locale,
+			);
 
 			return await ctx.reply(parsedMessage, {
 				parse_mode: "HTML",
@@ -209,10 +218,14 @@ export default {
 		if (args[0] === "update") {
 			const msg = ctx.dbChat.updatedAddonMessage;
 
-			const parsedMessage = parseVariables(msg, {
-				...updatedAddon.changes,
-				name: updatedAddon.name
-			}, ctx.locale);
+			const parsedMessage = parseVariables(
+				msg,
+				{
+					...updatedAddon.changes,
+					name: updatedAddon.name,
+				},
+				ctx.locale,
+			);
 
 			return await ctx.reply(parsedMessage, {
 				parse_mode: "HTML",
