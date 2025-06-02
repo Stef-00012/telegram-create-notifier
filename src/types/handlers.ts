@@ -11,6 +11,8 @@ export interface Command {
 	name: string;
 	description?: string;
 	displaySuggestion?: boolean;
+	ownerOnly?: boolean;
+	adminOnly?: boolean;
 	execute: CommandMiddleware<ConversationFlavor<Context>>;
 }
 

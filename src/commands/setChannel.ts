@@ -4,10 +4,9 @@ export default {
 	name: "setchannel",
 	description: "Set the channel where to send the notifications of the addons",
 	displaySuggestion: true,
+	adminOnly: true,
 
 	async execute(ctx) {
-		if (!ctx.isAdmin) return;
-
 		const chatId = ctx.chatId.toString();
 		const topicId = ctx.msg.is_topic_message
 			? ctx.msg.message_thread_id?.toString()

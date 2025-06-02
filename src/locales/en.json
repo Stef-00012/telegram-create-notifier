@@ -51,6 +51,7 @@
 	"commands.preview.messages.invalidArgs": "You must specify a message between \"new\" (new addon) or \"update\" (updated addon)",
 
 	"websocket.messages.openOnModrinth": "Open on Modrinth",
+	"websocket.messages.openOnCurseforge": "Open on Curseforge",
 
 	"websocket.variables.clientServerSide.unknown": "Unknown",
 	"websocket.variables.clientServerSide.required": "Required",

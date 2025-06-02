@@ -3,7 +3,7 @@ import {
 	defaultUpdatedAddonMessage,
 } from "@/constants/defaults";
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
-import type { WSAddonKeys } from "@/types/addonsWS";
+import type { WSAddonDataKeys } from "@/types/addonsWS";
 
 export type DBEvents = ("create" | "update")[];
 
@@ -26,7 +26,7 @@ export const chats = sqliteTable("chats", {
 		mode: "json",
 	})
 		.notNull()
-		.$type<WSAddonKeys[]>()
+		.$type<WSAddonDataKeys[]>()
 		.default(["versions"]),
 
 	events: text("events", {

@@ -6,10 +6,9 @@ export default {
 	name: "start",
 	description: "Displays a welcom message",
 	displaySuggestion: true,
+	adminOnly: true,
 
 	async execute(ctx) {
-		if (!ctx.isAdmin) return;
-
 		const openSourceButton = new InlineKeyboard()
 			.url(
 				localize(ctx.locale, "commands.start.buttons.viewSource"),

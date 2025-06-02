@@ -100,7 +100,12 @@ for (const command of commands) {
 		});
 	}
 
-	bot.command(commandData.name, commandData.execute);
+	bot.command(commandData.name, (ctx, next) => {
+		if (commandData.ownerOnly && !ctx.isOwner) return;
+		if (commandData.adminOnly && !ctx.isAdmin) return;
+
+		return next();
+	}, commandData.execute);
 
 	console.log(
 		`\x1b[36mLoaded the command "\x1b[0;1m${commandData.name}\x1b[0;36m"\x1b[0m`,

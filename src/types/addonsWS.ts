@@ -27,17 +27,24 @@ export interface CreateMessage extends WSmessage {
 }
 
 export interface UpdateMessageValues {
-	old: WSAddonValues;
-	new: WSAddonValues;
+	old: WSAddonDataValues;
+	new: WSAddonDataValues;
 }
+
+export type UpdateMessageDataChanges = Partial<
+	Record<
+		WSAddonDataKeys,
+		{ old: WSAddonDataValues | null; new: WSAddonDataValues | null }
+	>
+> | null;
 
 export interface UpdateMessage extends WSmessage {
 	type: WSEvents.UPDATE;
 	data: {
-		slug: WSAddon["slug"];
-		platform: WSAddon["platform"];
-		name: WSAddon["name"];
-		changes: Partial<Record<WSAddonKeys, UpdateMessageValues>>;
+		slugs: Record<Platforms, WSAddonData["slug"] | null>;
+		platforms: WSAddon["platforms"];
+		name: WSAddonData["name"];
+		changes: Record<Platforms, UpdateMessageDataChanges>;
 	}[];
 }
 
@@ -63,13 +70,19 @@ export interface CommandErrorMessage extends WSmessage {
 	};
 }
 
-export type WSAddonKeys = keyof WSAddon;
-export type WSAddonValues = WSAddon[WSAddonKeys];
+export type WSAddonDataKeys = keyof WSAddonData;
+export type WSAddonDataValues = WSAddonData[WSAddonDataKeys];
+
+export type ModData = Record<Platforms, WSAddonData>
 
 export interface WSAddon {
-	platform: Platforms;
+	platforms: Platforms[];
+	modData: Partial<ModData>;
+}
+
+export interface WSAddonData {
 	slug: string;
-	author: string;
+	authors: WsAddonDataAuthor[];
 	downloads: number;
 	description: string;
 	icon: string;
@@ -85,9 +98,15 @@ export interface WSAddon {
 	clientSide: SupportTypes;
 	serverSide: SupportTypes;
 	modloaders: Modloaders[];
+	id: string;
 }
 
-export type Platforms = "modrinth";
+export interface WsAddonDataAuthor {
+	name: string;
+	url: string;
+}
+
+export type Platforms = "modrinth" | "curseforge";
 
 export type SupportTypes = "unknown" | "required" | "optional" | "unsupported";
 
@@ -98,4 +117,6 @@ export type Modloaders =
 	| "neoforge"
 	| "liteloader"
 	| "modloader"
-	| "rift";
+	| "rift"
+	| "cauldron"
+	| "any";

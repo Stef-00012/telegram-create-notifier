@@ -11,6 +11,13 @@ export interface Context extends BaseContext {
 	dbSchemas: Schemas;
 	config: Config;
 	locale: string;
+	botStatus?:
+		| "creator"
+		| "administrator"
+		| "member"
+		| "restricted"
+		| "left"
+		| "kicked";
 
 	dbChat?: Schemas["chats"]["$inferSelect"];
 

@@ -4,17 +4,13 @@ import type { Bot } from "@/bot";
 import { config } from "$config";
 import WebSocket from "ws";
 import db from "@/db/db";
-import {
-	getNewAddonVariables,
-	getUpdatedAddonVariables,
-	parseVariables,
-} from "@/functions/util";
+import { parseVariables } from "@/functions/util";
 import {
 	type CreateMessage,
 	type PingMessage,
 	type PongMessage,
 	type UpdateMessage,
-	type WSAddon,
+	type WSAddonData,
 	WSEvents,
 } from "@/types/addonsWS";
 
@@ -56,22 +52,37 @@ export function handleWS(bot: Bot): void {
 		if (message.type === WSEvents.CREATE) {
 			const data = message.data;
 
+			console.log(data)
+
 			for (const chat of chats) {
 				if (!chat.enabled || !chat.events.includes("create")) continue;
 
 				for (const addon of data) {
-					const addonUrl = `https://modrinth.com/mod/${addon.slug}`;
+					const addonUrlButton = new InlineKeyboard();
 
-					const addonUrlButton = new InlineKeyboard()
-						.url(
-							localize(chat.locale, "websocket.messages.openOnModrinth"),
-							addonUrl,
-						)
-						.row();
+					if (addon.modData.modrinth) {
+						addonUrlButton
+							.url(
+								localize(chat.locale, "websocket.messages.openOnModrinth"),
+								`https://modrinth.com/mod/${addon.modData.modrinth.slug}`,
+							)
+							.row();
+					}
 
-					const variables = await getNewAddonVariables(addon, chat.locale);
+					if (addon.modData.curseforge) {
+						addonUrlButton
+							.url(
+								localize(chat.locale, "websocket.messages.openOnCurseforge"),
+								`https://curseforge.com/minecraft/mc-mods/${addon.modData.curseforge.slug}`,
+							)
+							.row();
+					}
 
-					const msg = parseVariables(chat.newAddonMessage, variables);
+					const msg = parseVariables(
+						chat.newAddonMessage,
+						addon.modData,
+						chat.locale,
+					);
 
 					bot.api.sendMessage(chat.chatId, msg, {
 						message_thread_id: chat.topicId
@@ -96,23 +107,39 @@ export function handleWS(bot: Bot): void {
 				for (const addon of data) {
 					if (
 						Object.keys(addon.changes).every(
-							(key) => !chat.filteredKeys.includes(key as keyof WSAddon),
+							(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
 						)
 					)
 						continue;
 
-					const addonUrl = `https://modrinth.com/mod/${addon.slug}`;
+					const addonUrlButton = new InlineKeyboard();
 
-					const addonUrlButton = new InlineKeyboard()
-						.url(
-							localize(chat.locale, "websocket.messages.openOnModrinth"),
-							addonUrl,
-						)
-						.row();
+					if (addon.slugs.modrinth) {
+						addonUrlButton
+							.url(
+								localize(chat.locale, "websocket.messages.openOnModrinth"),
+								`https://modrinth.com/mod/${addon.slugs.modrinth}`,
+							)
+							.row();
+					}
 
-					const variables = await getUpdatedAddonVariables(addon, chat.locale);
+					if (addon.slugs.curseforge) {
+						addonUrlButton
+							.url(
+								localize(chat.locale, "websocket.messages.openOnCurseforge"),
+								`https://curseforge.com/minecraft/mc-mods/${addon.slugs.curseforge}`,
+							)
+							.row();
+					}
 
-					const msg = parseVariables(chat.updatedAddonMessage, variables);
+					const msg = parseVariables(
+						chat.updatedAddonMessage,
+						{
+							...addon.changes,
+							name: addon.name,
+						},
+						chat.locale,
+					);
 
 					bot.api.sendMessage(chat.chatId, msg, {
 						message_thread_id: chat.topicId
