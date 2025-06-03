@@ -94,6 +94,7 @@ function parseVariablePath<Conditional extends boolean = false>(
 ): Conditional extends true ? unknown : string | null {
 	const keys = path.split("/");
 	let current: unknown = obj;
+  let previousKey: string | null = null;
 	let currentKey: string | null = null;
 
 	for (const key of keys) {
@@ -101,6 +102,7 @@ function parseVariablePath<Conditional extends boolean = false>(
 			return null;
 
 		if (key === "authorsUrl") {
+      previousKey = currentKey;
 			currentKey = key;
 			current = (current as Record<string, unknown>).authors;
 
@@ -110,18 +112,19 @@ function parseVariablePath<Conditional extends boolean = false>(
 		if (!conditional && !(key in (current as Record<string, unknown>)))
 			return null;
 
+    previousKey = currentKey;
 		currentKey = key;
 		current = (current as Record<string, unknown>)[key];
 	}
 
 	if (Array.isArray(current)) {
-		if (!conditional && currentKey === "authors")
+		if (!conditional && (currentKey === "authors" || previousKey === "authors"))
 			return current
 				.filter(Boolean)
 				.map((author: WsAddonDataAuthor) => author.name)
 				.join(", ");
 
-		if (!conditional && currentKey === "authorsUrl")
+		if (!conditional && (currentKey === "authorsUrl" || previousKey === "authorsUrl"))
 			return current
 				.filter(Boolean)
 				.map((author: WsAddonDataAuthor) => `[${author.name}](${author.url})`)
@@ -134,7 +137,7 @@ function parseVariablePath<Conditional extends boolean = false>(
 
 	if (
 		!conditional &&
-		(currentKey === "clientSide" || currentKey === "serverSide")
+		(currentKey === "clientSide" || previousKey === "clientSide" || currentKey === "serverSide" || previousKey === "serverSide")
 	) {
 		current = localize(
 			locale,
