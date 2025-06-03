@@ -292,6 +292,11 @@ export async function handleSettingsPanel(
 	}
 
 	if (value.startsWith("messages_")) {
+		const conversations = ctx.conversation.active()
+		console.log(conversations)
+
+		if (conversations[conversationId] > 0) return await ctx.localizedAnswerCallbackQuery("panels.settings.messages.changeMessages.ongoingConversation");
+
 		await ctx.conversation.enter(conversationId);
 	}
 }
