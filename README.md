@@ -12,3 +12,6 @@ The bot can also just be used through [@CreateAddonsNotifierBot](https://t.me/Cr
 2. `bun install`
 3. `bun run db:setup`
 4. `bun run start`
+
+# TO-DO
+- [ ] update default new/updated addon messages
