@@ -1,5 +1,5 @@
 export const defaultNewAddonMessage = `<blockquote class="tg-blockquote"><b class="tg-bold">New Addon Created</b></blockquote>{{?modrinth:
-✦ <u><b>Modrinth</b></u>
+✦ <b>Modrinth</b>
 <b class="tg-bold">Name</b>: {{modrinth/name}}
 <b class="tg-bold">Description</b>: {{modrinth/description}}
 <b class="tg-bold">Authors</b>: {{modrinth/authorsUrl}}
@@ -10,7 +10,7 @@ export const defaultNewAddonMessage = `<blockquote class="tg-blockquote"><b clas
 <b class="tg-bold">Server Side</b>: {{modrinth/serverSide}}
 <b class="tg-bold">Modloaders</b>:  {{modrinth/modloaders}}
 |?}}{{?curseforge:
-✦ <u><b>Curseforge</b></u>
+✦ <b>Curseforge</b>
 <b class="tg-bold">Name</b>: {{curseforge/name}}
 <b class="tg-bold">Description</b>: {{curseforge/description}}
 <b class="tg-bold">Authors</b>: {{curseforge/authorsUrl}}
@@ -22,14 +22,14 @@ export const defaultNewAddonMessage = `<blockquote class="tg-blockquote"><b clas
 <b class="tg-bold">Modloaders</b>:  {{curseforge/modloaders}}|?}}`;
 
 export const defaultUpdatedAddonMessage = `<blockquote><b>Addon aggiornato</b></blockquote>{{?modrinth:
-✦ <u><b>Modrinth</b></u>
+✦ <b>Modrinth</b>
 <b>Nome</b>: {{modrinth/name}}{{modrinth/?addedVersions:
 <b>Versioni (Aggiunte)</b>: {{modrinth/addedVersions}}|?}}{{modrinth/?removedVersions:
 <b>Versioni (Rimosse)</b>: {{modrinth/removedVersions}}|?}}{{modrinth/?addedModloaders:
 <b>Modloaders (Aggiunti)</b>: {{modrinth/addedModloaders}}|?}}{{modrinth/?removedModloaders:
 <b>Modloaders (Rimossi)</b>: {{modrinth/removedModloaders}}|?}}
 |?}}{{?curseforge:
-✦ <u><b>Curseforge</b></u>
+✦ <b>Curseforge</b>
 <b>Nome</b>: {{curseforge/name}}{{curseforge/?addedVersions:
 <b>Versioni (Aggiunte)</b>: {{curseforge/addedVersions}}|?}}{{curseforge/?removedVersions:
 <b>Versioni (Rimosse)</b>: {{curseforge/removedVersions}}|?}}{{curseforge/?addedModloaders:
