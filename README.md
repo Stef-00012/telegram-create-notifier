@@ -14,4 +14,4 @@ The bot can also just be used through [@CreateAddonsNotifierBot](https://t.me/Cr
 4. `bun run start`
 
 # TO-DO
-- [ ] fix conditional checking not working on /preview update
+- [ ] fix parsing variables (add added/removed on arrays)
