@@ -23,15 +23,15 @@ export const defaultNewAddonMessage = `<blockquote class="tg-blockquote"><b clas
 
 export const defaultUpdatedAddonMessage = `<blockquote><b>Addon aggiornato</b></blockquote>{{?modrinth:
 ✦ <b>Modrinth</b>
-<b>Nome</b>: {{modrinth/name}}{{modrinth/?addedVersions:
-<b>Versioni (Aggiunte)</b>: {{modrinth/addedVersions}}|?}}{{modrinth/?removedVersions:
-<b>Versioni (Rimosse)</b>: {{modrinth/removedVersions}}|?}}{{modrinth/?addedModloaders:
-<b>Modloaders (Aggiunti)</b>: {{modrinth/addedModloaders}}|?}}{{modrinth/?removedModloaders:
+<b>Nome</b>: {{modrinth/name}}{{?modrinth/addedVersions:
+<b>Versioni (Aggiunte)</b>: {{modrinth/addedVersions}}|?}}{{?modrinth/removedVersions:
+<b>Versioni (Rimosse)</b>: {{modrinth/removedVersions}}|?}}{{?modrinth/addedModloaders:
+<b>Modloaders (Aggiunti)</b>: {{modrinth/addedModloaders}}|?}}{{?modrinth/removedModloaders:
 <b>Modloaders (Rimossi)</b>: {{modrinth/removedModloaders}}|?}}
 |?}}{{?curseforge:
 ✦ <b>Curseforge</b>
-<b>Nome</b>: {{curseforge/name}}{{curseforge/?addedVersions:
-<b>Versioni (Aggiunte)</b>: {{curseforge/addedVersions}}|?}}{{curseforge/?removedVersions:
-<b>Versioni (Rimosse)</b>: {{curseforge/removedVersions}}|?}}{{curseforge/?addedModloaders:
-<b>Modloaders (Aggiunti)</b>: {{curseforge/addedModloaders}}|?}}{{curseforge/?removedModloaders:
+<b>Nome</b>: {{curseforge/name}}{{?curseforge/addedVersions:
+<b>Versioni (Aggiunte)</b>: {{curseforge/addedVersions}}|?}}{{?curseforge/removedVersions:
+<b>Versioni (Rimosse)</b>: {{curseforge/removedVersions}}|?}}{{?curseforge/addedModloaders:
+<b>Modloaders (Aggiunti)</b>: {{curseforge/addedModloaders}}|?}}{{?curseforge/removedModloaders:
 <b>Modloaders (Rimossi)</b>: {{curseforge/removedModloaders}}|?}}|?}}`;
