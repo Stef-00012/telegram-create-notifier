@@ -9,8 +9,22 @@ type Result<T> = { removed: T[]; added: T[] };
 const entitiesParser = new EntitiesParser();
 
 export function compareArrays<T>(oldArray: T[], newArray: T[]): Result<T> {
-	const removed = oldArray.filter((item) => !newArray.includes(item));
-	const added = newArray.filter((item) => !oldArray.includes(item));
+	function isObject(item: unknown): item is Record<string, unknown> {
+		return typeof item === "object" && item !== null;
+	}
+
+	function findIndex(arr: T[], target: T): number {
+		if (isObject(target)) {
+			const targetStr = JSON.stringify(target);
+			return arr.findIndex((item) =>
+				isObject(item) ? JSON.stringify(item) === targetStr : false,
+			);
+		}
+		return arr.indexOf(target);
+	}
+
+	const removed = oldArray.filter((item) => findIndex(newArray, item) === -1);
+	const added = newArray.filter((item) => findIndex(oldArray, item) === -1);
 
 	return {
 		removed,
@@ -94,7 +108,7 @@ function parseVariablePath<Conditional extends boolean = false>(
 ): Conditional extends true ? unknown : string | null {
 	const keys = path.split("/");
 	let current: unknown = obj;
-  let previousKey: string | null = null;
+	let previousKey: string | null = null;
 	let currentKey: string | null = null;
 
 	for (const key of keys) {
@@ -102,9 +116,51 @@ function parseVariablePath<Conditional extends boolean = false>(
 			return null;
 
 		if (key === "authorsUrl") {
-      previousKey = currentKey;
+			previousKey = currentKey;
 			currentKey = key;
 			current = (current as Record<string, unknown>).authors;
+
+			continue;
+		}
+
+		if (
+			(key === "added" || key === "removed") &&
+			Array.isArray(
+				(
+					current as {
+						old: string[] | WsAddonDataAuthor[];
+						new: string[] | WsAddonDataAuthor[];
+					}
+				).new,
+			) &&
+			Array.isArray(
+				(
+					current as {
+						old: string[] | WsAddonDataAuthor[];
+						new: string[] | WsAddonDataAuthor[];
+					}
+				).old,
+			)
+		) {
+			const { added, removed } = compareArrays(
+				(
+					current as {
+						old: string[] | WsAddonDataAuthor[];
+						new: string[] | WsAddonDataAuthor[];
+					}
+				).old as unknown[],
+				(
+					current as {
+						old: string[] | WsAddonDataAuthor[];
+						new: string[] | WsAddonDataAuthor[];
+					}
+				).new as unknown[],
+			);
+
+			previousKey = currentKey;
+			currentKey = key;
+			current =
+				key === "added" ? added.filter(Boolean) : removed.filter(Boolean);
 
 			continue;
 		}
@@ -112,7 +168,7 @@ function parseVariablePath<Conditional extends boolean = false>(
 		if (!conditional && !(key in (current as Record<string, unknown>)))
 			return null;
 
-    previousKey = currentKey;
+		previousKey = currentKey;
 		currentKey = key;
 		current = (current as Record<string, unknown>)[key];
 	}
@@ -124,7 +180,10 @@ function parseVariablePath<Conditional extends boolean = false>(
 				.map((author: WsAddonDataAuthor) => author.name)
 				.join(", ");
 
-		if (!conditional && (currentKey === "authorsUrl" || previousKey === "authorsUrl"))
+		if (
+			!conditional &&
+			(currentKey === "authorsUrl" || previousKey === "authorsUrl")
+		)
 			return current
 				.filter(Boolean)
 				.map((author: WsAddonDataAuthor) => `[${author.name}](${author.url})`)
@@ -137,7 +196,10 @@ function parseVariablePath<Conditional extends boolean = false>(
 
 	if (
 		!conditional &&
-		(currentKey === "clientSide" || previousKey === "clientSide" || currentKey === "serverSide" || previousKey === "serverSide")
+		(currentKey === "clientSide" ||
+			previousKey === "clientSide" ||
+			currentKey === "serverSide" ||
+			previousKey === "serverSide")
 	) {
 		current = localize(
 			locale,

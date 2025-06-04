@@ -220,10 +220,7 @@ export default {
 
 			const parsedMessage = parseVariables(
 				msg,
-				{
-					...updatedAddon.changes,
-					name: updatedAddon.name,
-				},
+				updatedAddon.changes,
 				ctx.locale,
 			);
 
