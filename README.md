@@ -14,4 +14,4 @@ The bot can also just be used through [@CreateAddonsNotifierBot](https://t.me/Cr
 4. `bun run start`
 
 # TO-DO
-- [ ] fix parsing variables (add added/removed on arrays)
+- [ ] fix parsing variables (handle `PLATFORM/authorsUrl` for new addons, check if after this change updated addons data still works)
