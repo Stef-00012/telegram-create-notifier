@@ -71,9 +71,9 @@ function parseConditional(
 		conditionalRegex,
 		(_match, variable, trueMsg, falseMsg) => {
 		    console.debug("cond", variable, parseVariablePath(variable, variables, locale, true), parseVariablePath(variable, variables, locale))
-			if (parseVariablePath(variable, variables, locale, true)) return parseConditional(trueMsg, variables, locale);
+			if (parseVariablePath(variable, variables, locale, true)) return parseVariables(trueMsg, variables, locale);
 
-			return parseConditional(falseMsg, variables, locale);
+			return parseVariables(falseMsg, variables, locale);
 		},
 	);
 }
