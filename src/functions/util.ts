@@ -82,6 +82,7 @@ export function parseVariables(
 	variables: Record<string, unknown>,
 	locale = "en",
 ) {
+    console.debug(variables)
 	const variableRegex = /{{(?<variable>[^}]+?)}}/gim;
 
 	const text = parseConditional(_text, variables);
