@@ -56,9 +56,9 @@ function parseConditional(
 	return text.replace(
 		conditionalRegex,
 		(_match, variable, trueMsg, falseMsg) => {
-			if (parseVariablePath(variable, variables, locale, true)) return trueMsg;
+			if (parseVariablePath(variable, variables, locale, true)) return parseConditional(trueMsg);
 
-			return falseMsg;
+			return parseConditional(falseMsg);
 		},
 	);
 }
