@@ -98,9 +98,9 @@ function findConditionals(text: string) {
 			const pipeIdx = inner.lastIndexOf("|");
 
 			if (colonIdx !== -1 && pipeIdx !== -1 && pipeIdx > colonIdx) {
-				const variable = inner.slice(0, colonIdx).trim();
-				const trueMsg = inner.slice(colonIdx + 1, pipeIdx).trim();
-				const falseMsg = inner.slice(pipeIdx + 1).trim();
+				const variable = inner.slice(0, colonIdx);
+				const trueMsg = inner.slice(colonIdx + 1, pipeIdx);
+				const falseMsg = inner.slice(pipeIdx + 1);
 
 				results.push({
 					variable,
