@@ -1,4 +1,4 @@
-import type { WSAddonKeys } from "@/types/addonsWS";
+import type { WSAddonDataKeys } from "@/types/addonsWS";
 import type { DBEvents } from "@/db/schemas/chats";
 import { localize } from "@/functions/localize";
 import { settingKeys } from "@/constants/keys";
@@ -13,7 +13,7 @@ import fs from "node:fs";
 import dbSchemas from "@/db/schema";
 import { parse } from "@/functions/util";
 interface Data {
-	filteredKeys: WSAddonKeys[];
+	filteredKeys: WSAddonDataKeys[];
 	enabled: boolean;
 	events: DBEvents;
 }
@@ -179,7 +179,7 @@ export async function handleSettingsPanel(
 	}
 
 	if (value.startsWith("filters_")) {
-		const setting = value.replace("filters_", "") as WSAddonKeys;
+		const setting = value.replace("filters_", "") as WSAddonDataKeys;
 
 		let newFilteredKeys = oldChat.filteredKeys;
 
@@ -292,6 +292,11 @@ export async function handleSettingsPanel(
 	}
 
 	if (value.startsWith("messages_")) {
+		const conversations = ctx.conversation.active()
+		console.log(conversations)
+
+		if (conversations[conversationId] > 0) return await ctx.localizedAnswerCallbackQuery("panels.settings.messages.changeMessages.ongoingConversation");
+
 		await ctx.conversation.enter(conversationId);
 	}
 }

@@ -1,6 +1,6 @@
-import type { WSAddonKeys } from "@/types/addonsWS";
+import type { WSAddonDataKeys } from "@/types/addonsWS";
 
-export const settingKeys: WSAddonKeys[] = [
+export const settingKeys: WSAddonDataKeys[] = [
 	"categories",
 	"description",
 	"icon",
@@ -10,4 +10,5 @@ export const settingKeys: WSAddonKeys[] = [
 	"license",
 	"serverSide",
 	"modloaders",
+	"slug",
 ];

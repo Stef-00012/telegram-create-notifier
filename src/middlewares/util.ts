@@ -60,7 +60,9 @@ export function utilMiddleware(
 			return ctx.reply(text, other || undefined, signal);
 		};
 
-		ctx.isAdmin = await adminOnly(ctx);
+		ctx.botStatus = ctx.myChatMember?.new_chat_member.status
+
+		if (ctx.botStatus !== "kicked" && ctx.botStatus !== "left") ctx.isAdmin = await adminOnly(ctx);
 		ctx.isOwner = ownerOnly(ctx);
 
 		await next();

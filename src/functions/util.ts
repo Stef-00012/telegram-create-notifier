@@ -2,15 +2,29 @@ import type { BotContext as Context } from "@/bot";
 import { EntitiesParser } from "@qz/telegram-entities-parser";
 import type { Message } from "@qz/telegram-entities-parser/types";
 import { localize } from "@/functions/localize";
-import type { UpdateMessage, WSAddon } from "@/types/addonsWS";
+import type { WsAddonDataAuthor } from "@/types/addonsWS";
 
 type Result<T> = { removed: T[]; added: T[] };
 
 const entitiesParser = new EntitiesParser();
 
 export function compareArrays<T>(oldArray: T[], newArray: T[]): Result<T> {
-	const removed = oldArray.filter((item) => !newArray.includes(item));
-	const added = newArray.filter((item) => !oldArray.includes(item));
+	function isObject(item: unknown): item is Record<string, unknown> {
+		return typeof item === "object" && item !== null;
+	}
+
+	function findIndex(arr: T[], target: T): number {
+		if (isObject(target)) {
+			const targetStr = JSON.stringify(target);
+			return arr.findIndex((item) =>
+				isObject(item) ? JSON.stringify(item) === targetStr : false,
+			);
+		}
+		return arr.indexOf(target);
+	}
+
+	const removed = oldArray.filter((item) => findIndex(newArray, item) === -1);
+	const added = newArray.filter((item) => findIndex(oldArray, item) === -1);
 
 	return {
 		removed,
@@ -45,94 +59,254 @@ export function parse(message: Message) {
 		);
 }
 
-function parseConditional(text: string, variables: Record<string, string>) {
-	const conditionalRegex =
-		/{{\?(?<variable>.+?):(?<trueMsg>.*?)\|(?<falseMsg>.*?)\?}}/gims;
+function findConditionals(text: string) {
+	const results: {
+		variable: string;
+		trueMsg: string;
+		falseMsg: string;
+		raw: string;
+		start: number;
+		end: number;
+	}[] = [];
 
-	return text.replace(
-		conditionalRegex,
-		(_match, variable, trueMsg, falseMsg) => {
-			if (variables[variable]) return trueMsg;
-			return falseMsg;
-		},
-	);
+	let i = 0;
+	while (i < text.length) {
+		const start = text.indexOf("{{?", i);
+
+		if (start === -1) break;
+
+		let depth = 1;
+		let j = start + 3;
+
+		while (j < text.length && depth > 0) {
+			if (text.startsWith("{{?", j)) {
+				depth++;
+				j += 3;
+			} else if (text.startsWith("?}}", j)) {
+				depth--;
+				j += 3;
+			} else {
+				j++;
+			}
+		}
+
+		if (depth === 0) {
+			const raw = text.slice(start, j);
+			const inner = raw.slice(3, -3);
+
+			const colonIdx = inner.indexOf(":");
+			const pipeIdx = inner.lastIndexOf("|");
+
+			if (colonIdx !== -1 && pipeIdx !== -1 && pipeIdx > colonIdx) {
+				const variable = inner.slice(0, colonIdx).trim();
+				const trueMsg = inner.slice(colonIdx + 1, pipeIdx).trim();
+				const falseMsg = inner.slice(pipeIdx + 1).trim();
+
+				results.push({
+					variable,
+					trueMsg,
+					falseMsg,
+					raw,
+					start,
+					end: j,
+				});
+			}
+
+			i = j;
+		} else {
+			break;
+		}
+	}
+
+	return results;
+}
+
+function parseConditional(
+	_text: string,
+	variables: Record<string, unknown>,
+	locale = "en",
+) {
+	let text = _text;
+	const conditionals = findConditionals(text);
+
+	for (const conditional of conditionals) {
+		const { variable, trueMsg, falseMsg, raw } = conditional;
+
+		if (parseVariablePath(variable, variables, locale, true)) {
+			text = text.replace(raw, parseConditional(trueMsg, variables, locale));
+			continue;
+		}
+
+		text = text.replace(raw, parseConditional(falseMsg, variables, locale));
+	}
+
+	return text;
 }
 
 export function parseVariables(
 	_text: string,
-	variables: Record<string, string>,
+	variables: Record<string, unknown>,
+	locale = "en",
 ) {
-	const variableRegex = /{{(?<variable>[^{}]+?)}}/gim;
+	const variableRegex = /{{(?<variable>[^}]+?)}}/gim;
 
 	const text = parseConditional(_text, variables);
 
-	return text.replace(variableRegex, (match, variable) => {
-		if (variables[variable]) return variables[variable];
+	const parsedText = text.replace(variableRegex, (match, variable) => {
+		return parseVariablePath(variable, variables, locale) || match;
+	});
+
+	const urlRegex =
+		/\[(?<text>[^\]]+)\]\((?<url>http(s)?:\/\/([\w-])+\.([\w-]+[^)]*)+)\)/gim;
+
+	return parsedText.replace(urlRegex, (match, text, url) => {
+		if (text && url) return `<a href="${url}">${text}</a>`;
+
 		return match;
 	});
 }
 
-export async function getNewAddonVariables(data: WSAddon, locale: string) {
-	const output: Record<string, string> = {};
+function parseVariablePath<Conditional extends boolean = false>(
+	path: string,
+	obj: Record<string, unknown>,
+	locale = "en",
+	conditional = false as Conditional,
+): Conditional extends true ? unknown : string | null {
+	const parts = path.split("/");
+	let prevKey: string | null = null;
+	let current: unknown = obj;
 
-	for (const [key, value] of Object.entries(data)) {
-		if (Array.isArray(value)) output[key] = value.join(", ");
-		else if (key === "created" || key === "modified")
-			output[key] = new Date(value).toLocaleString(locale);
-		else if (key === "clientSide" || key === "serverSide")
-			output[key] = localize(
-				locale,
-				`websocket.variables.clientServerSide.${value}`,
-			);
-		else if (key === "author") {
-			output[key] = value;
-			output.authorUrl = `https://modrinth.com/user/${value}`;
-		} else output[key] = value;
-	}
+	for (let i = 0; i < parts.length; i++) {
+		const key = parts[i];
+		const prevObj = current as Record<string, unknown> | null;
 
-	return output;
-}
+		if (!prevObj) return null;
 
-export async function getUpdatedAddonVariables(
-	data: UpdateMessage["data"][0],
-	locale: string,
-) {
-	const output: Record<string, string> = {
-		name: data.name,
-		platform: data.platform,
-	};
+		if (
+			["added", "removed", "authorsUrl"].every((item) => key !== item) &&
+			!(key in prevObj)
+		)
+			return null;
 
-	for (const [key, value] of Object.entries(data.changes)) {
-		const baseKey = key.charAt(0).toUpperCase() + key.slice(1);
+		if (key === "authorsUrl") {
+			current = prevObj.authors;
+			prevKey = key;
 
-		if (Array.isArray(value.old) && Array.isArray(value.new)) {
-			output[`old${baseKey}`] = value.old.join(", ");
-			output[`new${baseKey}`] = value.new.join(", ");
+			if (i === parts.length - 1) {
+				return (current as WsAddonDataAuthor[])
+					.filter(Boolean)
+					.map((author) => `<a href="${author.url}">${author.name}</a>`)
+					.join(", ");
+			}
 
-			const { added, removed } = compareArrays(value.old, value.new);
-			output[`added${baseKey}`] = added.join(", ");
-			output[`removed${baseKey}`] = removed.join(", ");
-		} else if (key === "created" || key === "modified") {
-			output[`old${baseKey}`] = new Date(value.old as string).toLocaleString(
-				locale,
-			);
-			output[`new${baseKey}`] = new Date(value.new as string).toLocaleString(
-				locale,
-			);
-		} else if (key === "clientSide" || key === "serverSide") {
-			output[`old${baseKey}`] = localize(
-				locale,
-				`websocket.variables.clientServerSide.${value.old}`,
-			);
-			output[`new${baseKey}`] = localize(
-				locale,
-				`websocket.variables.clientServerSide.${value.new}`,
-			);
-		} else {
-			output[`old${baseKey}`] = String(value.old);
-			output[`new${baseKey}`] = String(value.new);
+			continue;
 		}
+
+		if (Array.isArray(prevObj[key])) {
+			if (key === "authors" || prevKey === "authors") {
+				prevKey = key;
+
+				return (prevObj[key] as WsAddonDataAuthor[])
+					.filter(Boolean)
+					.map((author) => author.name)
+					.join(", ");
+			}
+
+			if (key === "authorsUrl" || prevKey === "authorsUrl") {
+				prevKey = key;
+
+				return (prevObj[key] as WsAddonDataAuthor[])
+					.filter(Boolean)
+					.map((author) => `<a href="${author.url}">${author.name}</a>`)
+					.join(", ");
+			}
+
+			return (prevObj[key] as unknown[]).filter(Boolean).join(", ");
+		}
+
+		if (
+			typeof prevObj === "object" &&
+			prevObj !== null &&
+			("new" in prevObj || "old" in prevObj) &&
+			(Array.isArray((prevObj as { old?: unknown[]; new?: unknown[] }).old) ||
+				Array.isArray((prevObj as { old?: unknown[]; new?: unknown[] }).new))
+		) {
+			const previousItem = prevObj as Record<
+				"old" | "new",
+				WsAddonDataAuthor[] | string[]
+			>;
+
+			if (key === "added" || key === "removed") {
+				const comparedArrays = compareArrays(
+					previousItem.old as unknown[],
+					previousItem.new as unknown[],
+				);
+
+				if (prevKey === "authors") {
+					prevKey = key;
+
+					return (comparedArrays[key] as WsAddonDataAuthor[])
+						.filter(Boolean)
+						.map((author) => author.name)
+						.join(", ");
+				}
+
+				if (prevKey === "authorsUrl") {
+					prevKey = key;
+
+					return (comparedArrays[key] as WsAddonDataAuthor[])
+						.filter(Boolean)
+						.map((author) => `<a href="${author.url}">${author.name}</a>`)
+						.join(", ");
+				}
+
+				prevKey = key;
+
+				return (comparedArrays[key] as unknown[]).filter(Boolean).join(", ");
+			}
+
+			if (key === "new" || key === "old") {
+				if (prevKey === "authors") {
+					prevKey = key;
+
+					return (previousItem[key] as WsAddonDataAuthor[])
+						.filter(Boolean)
+						.map((author) => author.name)
+						.join(", ");
+				}
+
+				if (prevKey === "authorsUrl") {
+					prevKey = key;
+
+					return (previousItem[key] as WsAddonDataAuthor[])
+						.filter(Boolean)
+						.map((author) => `<a href="${author.url}">${author.name}</a>`)
+						.join(", ");
+				}
+
+				return (previousItem[key] as unknown[]).filter(Boolean).join(", ");
+			}
+		}
+
+		if (
+			((prevKey === "clientSide" || prevKey === "serverSide") &&
+				(key === "old" || key === "new")) ||
+			key === "clientSide" ||
+			key === "serverSide"
+		) {
+			prevKey = key;
+
+			return localize(
+				locale,
+				`websocket.variables.clientServerSide.${prevObj[key]}`,
+			);
+		}
+
+		prevKey = key;
+		current = prevObj[key];
 	}
 
-	return output;
+	if (!conditional && typeof current !== "string") return null;
+
+	return current as Conditional extends true ? unknown : string | null;
 }

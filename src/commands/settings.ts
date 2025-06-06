@@ -5,10 +5,9 @@ export default {
 	name: "settings",
 	description: "Manage the settings of the bot",
 	displaySuggestion: true,
+	adminOnly: true,
 
 	async execute(ctx) {
-		if (!ctx.isAdmin) return;
-
 		if (!ctx.dbChat)
 			return ctx.localizedReply("commands.settings.messages.notConfigured");
 
