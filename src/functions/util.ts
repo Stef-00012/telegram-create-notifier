@@ -308,5 +308,10 @@ function parseVariablePath<Conditional extends boolean = false>(
 
 	if (!conditional && typeof current !== "string") return null;
 
+	if (typeof current === "object" && Object.keys(current || {}).length <= 0)
+		return null;
+	if (Array.isArray(current) && current.length <= 0) return null;
+	if (typeof current === "string" && current.trim().length <= 0) return null;
+
 	return current as Conditional extends true ? unknown : string | null;
 }
