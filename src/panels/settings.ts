@@ -129,17 +129,11 @@ export async function getSettingsPanel(
 	} else if (section === "messages") {
 		settingsPanel
 			.text(
-				localize(
-					locale,
-					"panels.settings.buttons.changeMessages.newAddon",
-				),
+				localize(locale, "panels.settings.buttons.changeMessages.newAddon"),
 				"settings__messages_newAddonMessage",
 			)
 			.text(
-				localize(
-					locale,
-					"panels.settings.buttons.changeMessages.updatedAddon",
-				),
+				localize(locale, "panels.settings.buttons.changeMessages.updatedAddon"),
 				"settings__messages_updatedAddonMessage",
 			)
 			.row()
@@ -287,15 +281,17 @@ export async function handleSettingsPanel(
 			localize(locale, "commands.settings.messages.success"),
 			{
 				reply_markup: newSettingsPanel,
-			}
-		)
+			},
+		);
 	}
 
 	if (value.startsWith("messages_")) {
-		const conversations = ctx.conversation.active()
-		console.log(conversations)
+		const conversations = ctx.conversation.active();
 
-		if (conversations[conversationId] > 0) return await ctx.localizedAnswerCallbackQuery("panels.settings.messages.changeMessages.ongoingConversation");
+		if (conversations[conversationId] > 0)
+			return await ctx.localizedAnswerCallbackQuery(
+				"panels.settings.messages.changeMessages.ongoingConversation",
+			);
 
 		await ctx.conversation.enter(conversationId);
 	}
@@ -327,7 +323,9 @@ export async function handleMessageConversation(
 
 	const messageType = ctx.callbackQuery.data.replace("settings__messages_", "");
 
-	await ctx.localizedAnswerCallbackQuery(`panels.settings.messages.changeMessages.${messageType}`)
+	await ctx.localizedAnswerCallbackQuery(
+		`panels.settings.messages.changeMessages.${messageType}`,
+	);
 
 	await ctx.localizedReply(
 		`panels.settings.messages.changeMessages.${messageType}.variables`,
@@ -336,7 +334,8 @@ export async function handleMessageConversation(
 				force_reply: true,
 			},
 			parse_mode: "HTML",
-		})
+		},
+	);
 
 	const { msg } = await conversation
 		.waitFor("message:text", {
@@ -358,7 +357,9 @@ export async function handleMessageConversation(
 			.where(eq(dbSchemas.chats.chatId, ctx.chatId.toString()));
 	});
 
-	await ctx.localizedReply(`panels.settings.messages.changeMessages.${messageType}.success`)
+	await ctx.localizedReply(
+		`panels.settings.messages.changeMessages.${messageType}.success`,
+	);
 
 	return await conversation.halt();
 }

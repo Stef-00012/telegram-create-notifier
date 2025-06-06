@@ -60,9 +60,10 @@ export function utilMiddleware(
 			return ctx.reply(text, other || undefined, signal);
 		};
 
-		ctx.botStatus = ctx.myChatMember?.new_chat_member.status
+		ctx.botStatus = ctx.myChatMember?.new_chat_member.status;
 
-		if (ctx.botStatus !== "kicked" && ctx.botStatus !== "left") ctx.isAdmin = await adminOnly(ctx);
+		if (ctx.botStatus !== "kicked" && ctx.botStatus !== "left")
+			ctx.isAdmin = await adminOnly(ctx);
 		ctx.isOwner = ownerOnly(ctx);
 
 		await next();

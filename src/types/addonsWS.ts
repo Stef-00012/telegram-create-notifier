@@ -73,7 +73,7 @@ export interface CommandErrorMessage extends WSmessage {
 export type WSAddonDataKeys = keyof WSAddonData;
 export type WSAddonDataValues = WSAddonData[WSAddonDataKeys];
 
-export type ModData = Record<Platforms, WSAddonData>
+export type ModData = Record<Platforms, WSAddonData>;
 
 export interface WSAddon {
 	platforms: Platforms[];

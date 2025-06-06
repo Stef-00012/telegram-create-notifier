@@ -212,6 +212,9 @@ export default {
 
 			return await ctx.reply(parsedMessage, {
 				parse_mode: "HTML",
+				link_preview_options: {
+					is_disabled: true,
+				},
 			});
 		}
 
@@ -226,6 +229,9 @@ export default {
 
 			return await ctx.reply(parsedMessage, {
 				parse_mode: "HTML",
+				link_preview_options: {
+					is_disabled: true,
+				},
 			});
 		}
 

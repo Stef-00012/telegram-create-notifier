@@ -26,7 +26,7 @@ import { utilMiddleware } from "@/middlewares/util";
 export type Config = typeof config;
 export type Schemas = typeof schemas;
 export type DB = typeof db;
-export type BotContext = HydrateFlavor<Context>
+export type BotContext = HydrateFlavor<Context>;
 export type Bot = GrammyBot<ConversationFlavor<BotContext>>;
 
 const bot = new GrammyBot<ConversationFlavor<BotContext>>(config.token);
@@ -45,18 +45,14 @@ bot.use(
 	autoThread(),
 	hydrate(),
 	utilMiddleware(bot, db, schemas, config),
-	conversations<
-		ConversationFlavor<Context>,
-		BotContext
-	>({
+	conversations<ConversationFlavor<Context>, BotContext>({
 		plugins: async (conversation) => {
 			return [
 				autoThread(),
 				hydrate(),
 				utilMiddleware(bot, db, schemas, config, conversation),
-				
-			]
-		}
+			];
+		},
 	}),
 
 	createConversation(handleMessageConversation, handleMessageConversationId),
@@ -100,12 +96,16 @@ for (const command of commands) {
 		});
 	}
 
-	bot.command(commandData.name, (ctx, next) => {
-		if (commandData.ownerOnly && !ctx.isOwner) return;
-		if (commandData.adminOnly && !ctx.isAdmin) return;
+	bot.command(
+		commandData.name,
+		(ctx, next) => {
+			if (commandData.ownerOnly && !ctx.isOwner) return;
+			if (commandData.adminOnly && !ctx.isAdmin) return;
 
-		return next();
-	}, commandData.execute);
+			return next();
+		},
+		commandData.execute,
+	);
 
 	console.log(
 		`\x1b[36mLoaded the command "\x1b[0;1m${commandData.name}\x1b[0;36m"\x1b[0m`,
@@ -116,7 +116,7 @@ for (const localeFile of localeFiles) {
 	const localeData = (await import(`${__dirname}/locales/${localeFile}`))
 		.default as Record<string, string>;
 
-	locales[localeFile.split(".")[0]] = localeData
+	locales[localeFile.split(".")[0]] = localeData;
 
 	console.log(
 		`\x1b[34mLoaded the locale "\x1b[0;1m${localeFile.split(".")[0]}\x1b[0;34m"\x1b[0m`,
