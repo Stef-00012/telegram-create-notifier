@@ -72,10 +72,12 @@ function findConditionals(text: string) {
 	let i = 0;
 	while (i < text.length) {
 		const start = text.indexOf("{{?", i);
+
 		if (start === -1) break;
 
 		let depth = 1;
 		let j = start + 3;
+
 		while (j < text.length && depth > 0) {
 			if (text.startsWith("{{?", j)) {
 				depth++;
@@ -87,24 +89,35 @@ function findConditionals(text: string) {
 				j++;
 			}
 		}
+
 		if (depth === 0) {
 			const raw = text.slice(start, j);
 			const inner = raw.slice(3, -3);
 
-			// Find the first ':' and the last '|'
 			const colonIdx = inner.indexOf(":");
 			const pipeIdx = inner.lastIndexOf("|");
+
 			if (colonIdx !== -1 && pipeIdx !== -1 && pipeIdx > colonIdx) {
 				const variable = inner.slice(0, colonIdx).trim();
 				const trueMsg = inner.slice(colonIdx + 1, pipeIdx).trim();
 				const falseMsg = inner.slice(pipeIdx + 1).trim();
-				results.push({ variable, trueMsg, falseMsg, raw, start, end: j });
+
+				results.push({
+					variable,
+					trueMsg,
+					falseMsg,
+					raw,
+					start,
+					end: j,
+				});
 			}
+
 			i = j;
 		} else {
 			break;
 		}
 	}
+
 	return results;
 }
 
@@ -178,12 +191,21 @@ function parseVariablePath<Conditional extends boolean = false>(
 		if (key === "authorsUrl") {
 			current = prevObj.authors;
 			prevKey = key;
+
+			if (i === parts.length - 1) {
+				return (current as WsAddonDataAuthor[])
+					.filter(Boolean)
+					.map((author) => `<a href="${author.url}">${author.name}</a>`)
+					.join(", ");
+			}
+
 			continue;
 		}
 
 		if (Array.isArray(prevObj[key])) {
 			if (key === "authors" || prevKey === "authors") {
 				prevKey = key;
+
 				return (prevObj[key] as WsAddonDataAuthor[])
 					.filter(Boolean)
 					.map((author) => author.name)
@@ -192,6 +214,7 @@ function parseVariablePath<Conditional extends boolean = false>(
 
 			if (key === "authorsUrl" || prevKey === "authorsUrl") {
 				prevKey = key;
+
 				return (prevObj[key] as WsAddonDataAuthor[])
 					.filter(Boolean)
 					.map((author) => `<a href="${author.url}">${author.name}</a>`)
@@ -221,6 +244,7 @@ function parseVariablePath<Conditional extends boolean = false>(
 
 				if (prevKey === "authors") {
 					prevKey = key;
+
 					return (comparedArrays[key] as WsAddonDataAuthor[])
 						.filter(Boolean)
 						.map((author) => author.name)
@@ -229,6 +253,7 @@ function parseVariablePath<Conditional extends boolean = false>(
 
 				if (prevKey === "authorsUrl") {
 					prevKey = key;
+
 					return (comparedArrays[key] as WsAddonDataAuthor[])
 						.filter(Boolean)
 						.map((author) => `<a href="${author.url}">${author.name}</a>`)
@@ -236,12 +261,14 @@ function parseVariablePath<Conditional extends boolean = false>(
 				}
 
 				prevKey = key;
+
 				return (comparedArrays[key] as unknown[]).filter(Boolean).join(", ");
 			}
 
 			if (key === "new" || key === "old") {
 				if (prevKey === "authors") {
 					prevKey = key;
+
 					return (previousItem[key] as WsAddonDataAuthor[])
 						.filter(Boolean)
 						.map((author) => author.name)
@@ -250,6 +277,7 @@ function parseVariablePath<Conditional extends boolean = false>(
 
 				if (prevKey === "authorsUrl") {
 					prevKey = key;
+
 					return (previousItem[key] as WsAddonDataAuthor[])
 						.filter(Boolean)
 						.map((author) => `<a href="${author.url}">${author.name}</a>`)
@@ -267,6 +295,7 @@ function parseVariablePath<Conditional extends boolean = false>(
 			key === "serverSide"
 		) {
 			prevKey = key;
+
 			return localize(
 				locale,
 				`websocket.variables.clientServerSide.${prevObj[key]}`,
