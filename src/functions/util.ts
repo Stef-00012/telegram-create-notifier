@@ -287,19 +287,45 @@ function parseVariablePath<Conditional extends boolean = false>(
 				return (previousItem[key] as unknown[]).filter(Boolean).join(", ");
 			}
 		}
-
+		
 		if (
 			((prevKey === "clientSide" || prevKey === "serverSide") &&
-				(key === "old" || key === "new")) ||
-			key === "clientSide" ||
-			key === "serverSide"
+			(key === "old" || key === "new")) ||
+			((key === "clientSide" ||
+			key === "serverSide") && typeof prevObj[key] === "string")
 		) {
-			prevKey = key;
+			if (key === "clientSide" || key === "serverSide") {
+				prevKey = key;
+				
+				return localize(
+					locale,
+					`websocket.variables.clientServerSide.${prevObj[key]}`,
+				);
+			}
+
+			prevKey = key
 
 			return localize(
 				locale,
 				`websocket.variables.clientServerSide.${prevObj[key]}`,
 			);
+		}
+
+		if (
+			((prevKey === "created" || prevKey === "modified") &&
+			(key === "old" || key === "new")) ||
+			((key === "created" ||
+			key === "modified") && typeof prevObj[key] === "string")
+		) {
+			if (key === "created" || key === "modified") {
+				prevKey = key;
+				
+				return new Date(prevObj[key] as string).toLocaleString(locale ?? "en")
+			}
+
+			prevKey = key
+
+			return new Date(prevObj[key] as string).toLocaleString(locale ?? "en")
 		}
 
 		prevKey = key;
