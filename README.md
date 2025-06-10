@@ -14,4 +14,4 @@ The bot can also just be used through [@CreateAddonsNotifierBot](https://t.me/Cr
 4. `bun run start`
 
 # TO-DO
-- [x] fix parsing variables (handle `PLATFORM/authorsUrl` for new addons, check if after this change updated addons data still works)
+- [ ] format dates in ws messages

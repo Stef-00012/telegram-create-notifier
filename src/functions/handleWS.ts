@@ -107,7 +107,10 @@ export function handleWS(bot: Bot): void {
 
 				for (const addon of data) {
 					if (
-						Object.keys(addon.changes).every(
+						[
+							...Object.keys(addon.changes.modrinth ?? {}),
+							...Object.keys(addon.changes.curseforge ?? {}),
+						].every(
 							(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
 						)
 					)
