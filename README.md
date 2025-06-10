@@ -14,4 +14,4 @@ The bot can also just be used through [@CreateAddonsNotifierBot](https://t.me/Cr
 4. `bun run start`
 
 # TO-DO
-- [ ] format dates in ws messages
+- [x] format dates in ws messages
