@@ -287,23 +287,23 @@ function parseVariablePath<Conditional extends boolean = false>(
 				return (previousItem[key] as unknown[]).filter(Boolean).join(", ");
 			}
 		}
-		
+
 		if (
 			((prevKey === "clientSide" || prevKey === "serverSide") &&
-			(key === "old" || key === "new")) ||
-			((key === "clientSide" ||
-			key === "serverSide") && typeof prevObj[key] === "string")
+				(key === "old" || key === "new")) ||
+			((key === "clientSide" || key === "serverSide") &&
+				typeof prevObj[key] === "string")
 		) {
 			if (key === "clientSide" || key === "serverSide") {
 				prevKey = key;
-				
+
 				return localize(
 					locale,
 					`websocket.variables.clientServerSide.${prevObj[key]}`,
 				);
 			}
 
-			prevKey = key
+			prevKey = key;
 
 			return localize(
 				locale,
@@ -313,19 +313,19 @@ function parseVariablePath<Conditional extends boolean = false>(
 
 		if (
 			((prevKey === "created" || prevKey === "modified") &&
-			(key === "old" || key === "new")) ||
-			((key === "created" ||
-			key === "modified") && typeof prevObj[key] === "string")
+				(key === "old" || key === "new")) ||
+			((key === "created" || key === "modified") &&
+				typeof prevObj[key] === "string")
 		) {
 			if (key === "created" || key === "modified") {
 				prevKey = key;
-				
-				return new Date(prevObj[key] as string).toLocaleString(locale ?? "en")
+
+				return new Date(prevObj[key] as string).toLocaleString(locale ?? "en");
 			}
 
-			prevKey = key
+			prevKey = key;
 
-			return new Date(prevObj[key] as string).toLocaleString(locale ?? "en")
+			return new Date(prevObj[key] as string).toLocaleString(locale ?? "en");
 		}
 
 		prevKey = key;
