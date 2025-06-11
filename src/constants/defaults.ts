@@ -23,14 +23,14 @@ export const defaultNewAddonMessage = `<blockquote><b>New Addon Created</b></blo
 
 export const defaultUpdatedAddonMessage = `<blockquote><b>Addon Updated</b></blockquote>{{?modrinth:
 ✦ <b>Modrinth</b>
-<b>Name</b>: {{modrinth/name/new}}{{?modrinth/versions/added:
+<b>Name</b>: {{names/modrinth}}{{?modrinth/versions/added:
 <b>Versions (Added)</b>: {{modrinth/versions/added}}|?}}{{?modrinth/versions/removed:
 <b>Versions (Removed)</b>: {{modrinth/versions/removed}}|?}}{{?modrinth/modloaders/added:
 <b>Modloaders (Added)</b>: {{modrinth/modloaders/added}}|?}}{{?modrinth/modloaders/removed:
 <b>Modloaders (Removed)</b>: {{modrinth/modloaders/removed}}|?}}
 |?}}{{?curseforge:
 ✦ <b>Curseforge</b>
-<b>Nome</b>: {{curseforge/name/new}}{{?curseforge/versions/added:
+<b>Nome</b>: {{names/curseforge}}{{?curseforge/versions/added:
 <b>Versions (Added)</b>: {{curseforge/versions/added}}|?}}{{?curseforge/versions/removed:
 <b>Versions (Removed)</b>: {{curseforge/versions/removed}}|?}}{{?curseforge/modloaders/added:
 <b>Modloaders (Added)</b>: {{curseforge/modloaders/added}}|?}}{{?curseforge/modloaders/removed:

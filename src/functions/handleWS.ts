@@ -44,7 +44,7 @@ export function handleWS(bot: Bot): void {
 				type: WSEvents.PONG,
 			};
 
-			socket.send(JSON.stringify(pong));
+			return socket.send(JSON.stringify(pong));
 		}
 
 		const chats = await db.query.chats.findMany();
@@ -106,15 +106,22 @@ export function handleWS(bot: Bot): void {
 				if (!chat.enabled || !chat.events.includes("update")) continue;
 
 				for (const addon of data) {
+					const curseforgeKeys = Object.keys(addon.changes.curseforge ?? {})
+
+					if (curseforgeKeys.every(
+						(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
+					)) addon.changes.curseforge = null
+
+					const modrinthKeys = Object.keys(addon.changes.modrinth ?? {})
+
+					if (modrinthKeys.every(
+						(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
+					)) addon.changes.modrinth = null
+
 					if (
-						[
-							...Object.keys(addon.changes.modrinth ?? {}),
-							...Object.keys(addon.changes.curseforge ?? {}),
-						].every(
-							(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
-						)
-					)
-						continue;
+						!addon.changes.curseforge &&
+						!addon.changes.modrinth
+					) continue;
 
 					const addonUrlButton = new InlineKeyboard();
 
@@ -138,7 +145,10 @@ export function handleWS(bot: Bot): void {
 
 					const msg = parseVariables(
 						chat.updatedAddonMessage,
-						addon.changes,
+						{
+							...addon.changes,
+							names: addon.names
+						},
 						chat.locale,
 					);
 

@@ -43,7 +43,7 @@ export interface UpdateMessage extends WSmessage {
 	data: {
 		slugs: Record<Platforms, WSAddonData["slug"] | null>;
 		platforms: WSAddon["platforms"];
-		name: WSAddonData["name"];
+		names: Record<Platforms, WSAddonData["name"] | null>;
 		changes: Record<Platforms, UpdateMessageDataChanges>;
 	}[];
 }

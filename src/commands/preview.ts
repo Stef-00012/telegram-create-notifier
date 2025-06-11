@@ -59,7 +59,10 @@ const newAddon: CreateMessage["data"][0] = {
 };
 
 const updatedAddon: UpdateMessage["data"][0] = {
-	name: "Create",
+	names: {
+		curseforge: "Create",
+		modrinth: "Create"
+	},
 	platforms: ["modrinth", "curseforge"],
 	slugs: {
 		curseforge: "create",
@@ -223,7 +226,10 @@ export default {
 
 			const parsedMessage = parseVariables(
 				msg,
-				updatedAddon.changes,
+				{
+					...updatedAddon.changes,
+					names: updatedAddon.names
+				},
 				ctx.locale,
 			);
 

@@ -80,7 +80,7 @@ for (const event of events) {
 
 	bot.on(eventData.name, eventData.execute);
 
-	console.log(
+	console.info(
 		`\x1b[34mLoaded the event "\x1b[0;1m${eventData.name}\x1b[0;34m"\x1b[0m`,
 	);
 }
@@ -107,7 +107,7 @@ for (const command of commands) {
 		commandData.execute,
 	);
 
-	console.log(
+	console.info(
 		`\x1b[36mLoaded the command "\x1b[0;1m${commandData.name}\x1b[0;36m"\x1b[0m`,
 	);
 }
@@ -118,7 +118,7 @@ for (const localeFile of localeFiles) {
 
 	locales[localeFile.split(".")[0]] = localeData;
 
-	console.log(
+	console.info(
 		`\x1b[34mLoaded the locale "\x1b[0;1m${localeFile.split(".")[0]}\x1b[0;34m"\x1b[0m`,
 	);
 }
