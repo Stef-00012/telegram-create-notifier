@@ -30,7 +30,7 @@ export const defaultUpdatedAddonMessage = `<blockquote><b>Addon Updated</b></blo
 <b>Modloaders (Removed)</b>: {{modrinth/modloaders/removed}}|?}}
 |?}}{{?curseforge:
 ✦ <b>Curseforge</b>
-<b>Nome</b>: {{names/curseforge}}{{?curseforge/versions/added:
+<b>Name</b>: {{names/curseforge}}{{?curseforge/versions/added:
 <b>Versions (Added)</b>: {{curseforge/versions/added}}|?}}{{?curseforge/versions/removed:
 <b>Versions (Removed)</b>: {{curseforge/versions/removed}}|?}}{{?curseforge/modloaders/added:
 <b>Modloaders (Added)</b>: {{curseforge/modloaders/added}}|?}}{{?curseforge/modloaders/removed:
