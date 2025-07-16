@@ -5,6 +5,7 @@ tmp
 /data/*.db
 bun.lockb
 .env*
+!.env.example
 drizzle/
 migrations/
 *.zip
