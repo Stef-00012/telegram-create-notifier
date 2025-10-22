@@ -26,7 +26,9 @@ export function handleWS(bot: Bot): void {
 			`\x1b[31mDisconnected from the create addons WebSocket:\n - Code: \x1b[0;1m${code}\x1b[0;31m\n - Reason: \x1b[0;1m${reason}\x1b[0;31m\n\nRetrying to connect in 10 seconds\x1b[0m`,
 		);
 
-		setTimeout(handleWS, 10000);
+		setTimeout(() => {
+			handleWS(bot)
+		}, 10000);
 	});
 
 	socket.on("error", (error) => {
