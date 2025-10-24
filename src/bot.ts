@@ -1,13 +1,11 @@
 import type { Command, Event } from "@/types/handlers";
 import type { Context } from "@/types/grammy";
-import { autoThread } from "@grammyjs/auto-thread";
 import { autoRetry } from "@grammyjs/auto-retry";
 import { handleWS } from "@/functions/handleWS";
 import type { BotCommand } from "grammy/types";
 import { hydrate, type HydrateFlavor } from "@grammyjs/hydrate";
 import { Bot as GrammyBot } from "grammy";
 import schemas from "@/db/schema";
-import { config } from "$config";
 import db from "@/db/db";
 import fs from "node:fs";
 import {
@@ -23,13 +21,16 @@ import {
 } from "@/panels/settings";
 import { utilMiddleware } from "@/middlewares/util";
 
-export type Config = typeof config;
 export type Schemas = typeof schemas;
 export type DB = typeof db;
 export type BotContext = HydrateFlavor<Context>;
 export type Bot = GrammyBot<ConversationFlavor<BotContext>>;
 
-const bot = new GrammyBot<ConversationFlavor<BotContext>>(config.token);
+if (!process.env.TOKEN) {
+    throw new Error("Bot token is not defined in the environment variables.");
+}
+
+const bot = new GrammyBot<ConversationFlavor<BotContext>>(process.env.TOKEN);
 
 bot.catch((error) => {
 	console.error(
@@ -42,15 +43,13 @@ bot.catch((error) => {
 bot.api.config.use(autoRetry());
 
 bot.use(
-	autoThread(),
 	hydrate(),
-	utilMiddleware(bot, db, schemas, config),
+	utilMiddleware(bot, db, schemas),
 	conversations<ConversationFlavor<Context>, BotContext>({
 		plugins: async (conversation) => {
 			return [
-				autoThread(),
 				hydrate(),
-				utilMiddleware(bot, db, schemas, config, conversation),
+				utilMiddleware(bot, db, schemas, conversation),
 			];
 		},
 	}),
@@ -123,8 +122,10 @@ for (const localeFile of localeFiles) {
 	);
 }
 
-bot.api.setMyCommands(suggestedCommands);
+(async () => {
+	await bot.api.setMyCommands(suggestedCommands);
 
-handleWS(bot);
+	handleWS(bot);
 
-bot.start();
+	bot.start();
+})();

@@ -1,5 +1,5 @@
 import { adminOnly, ownerOnly } from "@/functions/util";
-import type { Bot, Config, DB, Schemas } from "@/bot";
+import type { Bot, DB, Schemas } from "@/bot";
 import { localize } from "@/functions/localize";
 import type { BotContext as Context } from "@/bot";
 import { eq } from "drizzle-orm";
@@ -9,14 +9,12 @@ export function utilMiddleware(
 	bot: Bot,
 	db: DB,
 	schemas: Schemas,
-	config: Config,
 	conversation?: Conversation,
 ) {
 	return async (ctx: Context, next: () => Promise<void>) => {
 		ctx.bot = bot;
 		ctx.db = db;
 		ctx.dbSchemas = schemas;
-		ctx.config = config;
 
 		ctx.dbChat = undefined;
 

@@ -1,7 +1,6 @@
 import { localize } from "@/functions/localize";
 import { InlineKeyboard } from "grammy";
 import type { Bot } from "@/bot";
-import { config } from "$config";
 import WebSocket from "ws";
 import db from "@/db/db";
 import { parseVariables } from "@/functions/util";
@@ -15,7 +14,9 @@ import {
 } from "@/types/addonsWS";
 
 export function handleWS(bot: Bot): void {
-	const socket = new WebSocket(config.createAddonsWSURI);
+	const wsUrl = `ws${process.env.CREATE_ADDONS_SECURE === "true" ? "s" : ""}://${process.env.CREATE_ADDONS_BASE_URL}/ws`;
+
+	const socket = new WebSocket(wsUrl);
 
 	socket.on("open", () => {
 		console.info("\x1b[32mConnected to the create addons WebSocket\x1b[0m");

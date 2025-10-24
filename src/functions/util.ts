@@ -35,7 +35,9 @@ export function compareArrays<T>(oldArray: T[], newArray: T[]): Result<T> {
 export async function adminOnly(ctx: Context) {
 	const author = await ctx.getAuthor();
 
-	if (ctx.config.ownerIds.includes(ctx.from?.id as number)) return true;
+	const ownerIds = process.env.OWNER_IDS?.split(",").map((id) => Number(id)) || [];
+
+	if (ownerIds.includes(ctx.from?.id as number)) return true;
 
 	if (
 		ctx.chat?.type !== "private" &&
@@ -47,7 +49,9 @@ export async function adminOnly(ctx: Context) {
 }
 
 export function ownerOnly(ctx: Context) {
-	return ctx.config.ownerIds.includes(ctx.from?.id as number);
+	const ownerIds = process.env.OWNER_IDS?.split(",").map((id) => Number(id)) || [];
+
+	return ownerIds.includes(ctx.from?.id as number);
 }
 
 export function parse(message: Message) {

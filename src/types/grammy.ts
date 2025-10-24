@@ -1,4 +1,4 @@
-import type { Bot, BotContext, Config, DB, Schemas } from "@/bot";
+import type { Bot, BotContext, DB, Schemas } from "@/bot";
 import type { Context as BaseContext } from "grammy";
 import type {
 	Conversation as BaseConversation,
@@ -9,7 +9,6 @@ export interface Context extends BaseContext {
 	bot: Bot;
 	db: DB;
 	dbSchemas: Schemas;
-	config: Config;
 	locale: string;
 	botStatus?:
 		| "creator"
