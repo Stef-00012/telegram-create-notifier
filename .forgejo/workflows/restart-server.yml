@@ -1,11 +1,12 @@
-name: Restart Site Server
+name: Restart Bot Server
 
 on:
     push:
-        branches: [main]
+        branches:
+            - main
         paths: 
             - "src/**"
-            - ".github/workflows/restart-server.yml"
+            - ".forgejo/workflows/restart-server.yml"
             - "drizzle.config.ts"
             - "package.json"
             - "tsconfig.json"
@@ -13,14 +14,14 @@ on:
 
 jobs:
     restart-site-server:
-        name: Restart Site Server
-        runs-on: ubuntu-latest
+        name: Restart Bot Server
+        runs-on: docker
 
         steps: 
             - uses: actions/checkout@v4
 
             - name: Restart Server
-              uses: Stef-00012/restart-ptero-action@main
+              uses: Stef/restart-ptero-action@main
               with:
                 PTERO_PANEL_URL: ${{ secrets.PTERO_PANEL_URL }}
                 PTERO_PANEL_TOKEN: ${{ secrets.PTERO_PANEL_TOKEN }}
