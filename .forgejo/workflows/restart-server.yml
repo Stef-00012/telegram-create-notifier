@@ -15,7 +15,7 @@ on:
 jobs:
     restart-site-server:
         name: Restart Bot Server
-        runs-on: docker
+        runs-on: node
 
         steps: 
             - uses: actions/checkout@v4
