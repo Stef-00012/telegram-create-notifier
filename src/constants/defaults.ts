@@ -3,7 +3,8 @@ export const defaultNewAddonMessage = `<blockquote><b>New Addon Created</b></blo
 <b>Name</b>: {{modrinth/name}}
 <b>Description</b>: {{modrinth/description}}
 <b>Authors</b>: {{modrinth/authorsUrl}}
-<b>Versions</b>: {{modrinth/versions}}
+<b>Versions</b>: {{modrinth/versions}}{{?modrinth/createVersion:
+<b>Create Version</b>: {{modrinth/createVersion}}|?}}
 <b>Creation Date</b>: {{modrinth/created}}
 <b>Categories</b>: {{modrinth/categories}}
 <b>Client Side</b>: {{modrinth/clientSide}}
@@ -14,7 +15,8 @@ export const defaultNewAddonMessage = `<blockquote><b>New Addon Created</b></blo
 <b>Name</b>: {{curseforge/name}}
 <b>Description</b>: {{curseforge/description}}
 <b>Authors</b>: {{curseforge/authorsUrl}}
-<b>Versions</b>: {{curseforge/versions}}
+<b>Versions</b>: {{curseforge/versions}}{{?curseforge/createVersion:
+<b>Create Version</b>: {{curseforge/createVersion}}|?}}
 <b>Creation Date</b>: {{curseforge/created}}
 <b>Categories</b>: {{curseforge/categories}}
 <b>Client Side</b>: {{curseforge/clientSide}}
@@ -27,11 +29,16 @@ export const defaultUpdatedAddonMessage = `<blockquote><b>Addon Updated</b></blo
 <b>Versions (Added)</b>: {{modrinth/versions/added}}|?}}{{?modrinth/versions/removed:
 <b>Versions (Removed)</b>: {{modrinth/versions/removed}}|?}}{{?modrinth/modloaders/added:
 <b>Modloaders (Added)</b>: {{modrinth/modloaders/added}}|?}}{{?modrinth/modloaders/removed:
-<b>Modloaders (Removed)</b>: {{modrinth/modloaders/removed}}|?}}
+<b>Modloaders (Removed)</b>: {{modrinth/modloaders/removed}}|?}}{{?modrinth/createVersion/new:
+<b>Create Version (New)</b>: {{modrinth/createVersion/new}}|?}}{{?modrinth/createVersion/old:
+<b>Create Version (Old)</b>: {{modrinth/createVersion/old}}|?}}
 |?}}{{?curseforge:
 ✦ <b>Curseforge</b>
 <b>Name</b>: {{names/curseforge}}{{?curseforge/versions/added:
 <b>Versions (Added)</b>: {{curseforge/versions/added}}|?}}{{?curseforge/versions/removed:
 <b>Versions (Removed)</b>: {{curseforge/versions/removed}}|?}}{{?curseforge/modloaders/added:
 <b>Modloaders (Added)</b>: {{curseforge/modloaders/added}}|?}}{{?curseforge/modloaders/removed:
-<b>Modloaders (Removed)</b>: {{curseforge/modloaders/removed}}|?}}|?}}`;
+<b>Modloaders (Removed)</b>: {{curseforge/modloaders/removed}}|?}}{{?curseforge/createVersion/new:
+<b>Create Version (New)</b>: {{curseforge/createVersion/new}}|?}}{{?curseforge/createVersion/old:
+<b>Create Version (Old)</b>: {{curseforge/createVersion/old}}|?}}
+|?}}`;

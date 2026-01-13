@@ -345,6 +345,14 @@ export async function handleMessageConversation(
 
 	const parsedText = parse(msg);
 
+	if (parsedText.toLowerCase() === "cancel") {
+		await ctx.localizedReply(
+			`panels.settings.messages.changeMessages.${messageType}.cancel`,
+		);
+
+		return await conversation.halt();
+	}
+
 	await conversation.external((ctx) => {
 		if (!ctx.chatId) return undefined;
 

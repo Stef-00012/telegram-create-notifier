@@ -42,8 +42,9 @@ export interface UpdateMessage extends WSmessage {
 	type: WSEvents.UPDATE;
 	data: {
 		slugs: Record<Platforms, WSAddonData["slug"] | null>;
-		platforms: WSAddon["platforms"];
+		// icons: Record<Platforms, WSAddonData["icon"] | null>;
 		names: Record<Platforms, WSAddonData["name"] | null>;
+		platforms: WSAddon["platforms"];
 		changes: Record<Platforms, UpdateMessageDataChanges>;
 	}[];
 }
@@ -99,6 +100,7 @@ export interface WSAddonData {
 	serverSide: SupportTypes;
 	modloaders: Modloaders[];
 	id: string;
+	createVersion?: string;
 }
 
 export interface WsAddonDataAuthor {

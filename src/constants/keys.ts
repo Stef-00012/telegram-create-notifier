@@ -11,4 +11,5 @@ export const settingKeys: WSAddonDataKeys[] = [
 	"serverSide",
 	"modloaders",
 	"slug",
+	"createVersion",
 ];

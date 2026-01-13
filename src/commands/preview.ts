@@ -29,6 +29,7 @@ const newAddon: CreateMessage["data"][0] = {
 			serverSide: "required",
 			modloaders: ["forge", "neoforge"],
 			id: "aa",
+			createVersion: "6.0.0",
 		},
 		modrinth: {
 			slug: "create",
@@ -54,6 +55,7 @@ const newAddon: CreateMessage["data"][0] = {
 			serverSide: "required",
 			modloaders: ["forge", "neoforge"],
 			id: "aa",
+			createVersion: "6.0.0",
 		},
 	},
 };
@@ -61,7 +63,7 @@ const newAddon: CreateMessage["data"][0] = {
 const updatedAddon: UpdateMessage["data"][0] = {
 	names: {
 		curseforge: "Create",
-		modrinth: "Create"
+		modrinth: "Create",
 	},
 	platforms: ["modrinth", "curseforge"],
 	slugs: {
@@ -126,6 +128,10 @@ const updatedAddon: UpdateMessage["data"][0] = {
 				old: "MIT",
 				new: "Apache-2.0",
 			},
+			createVersion: {
+				old: "5.0.0",
+				new: "6.0.0",
+			},
 		},
 		modrinth: {
 			name: {
@@ -184,6 +190,10 @@ const updatedAddon: UpdateMessage["data"][0] = {
 				old: "MIT",
 				new: "Apache-2.0",
 			},
+			createVersion: {
+				old: "5.0.0",
+				new: "6.0.0",
+			},
 		},
 	},
 };
@@ -203,6 +213,14 @@ export default {
 
 		if (args[0] === "new") {
 			const msg = ctx.dbChat.newAddonMessage;
+
+			if (args[1] === "raw") {
+				return await ctx.reply(msg, {
+					link_preview_options: {
+						is_disabled: true,
+					},
+				});
+			}
 
 			const parsedMessage = parseVariables(
 				msg,
@@ -224,11 +242,19 @@ export default {
 		if (args[0] === "update") {
 			const msg = ctx.dbChat.updatedAddonMessage;
 
+			if (args[1] === "raw") {
+				return await ctx.reply(msg, {
+					link_preview_options: {
+						is_disabled: true,
+					},
+				});
+			}
+
 			const parsedMessage = parseVariables(
 				msg,
 				{
 					...updatedAddon.changes,
-					names: updatedAddon.names
+					names: updatedAddon.names,
 				},
 				ctx.locale,
 			);

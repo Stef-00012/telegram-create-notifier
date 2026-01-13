@@ -4,7 +4,7 @@ import { InlineKeyboard } from "grammy";
 
 export default {
 	name: "start",
-	description: "Displays a welcom message",
+	description: "Displays a welcome message",
 	displaySuggestion: true,
 	adminOnly: true,
 

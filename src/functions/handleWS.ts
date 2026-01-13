@@ -90,7 +90,7 @@ export function handleWS(bot: Bot): void {
 
 					bot.api.sendMessage(chat.chatId, msg, {
 						message_thread_id: chat.topicId
-							? Number.parseInt(chat.topicId)
+							? Number.parseInt(chat.topicId, 10)
 							: undefined,
 						parse_mode: "HTML",
 						reply_markup: addonUrlButton,
@@ -157,7 +157,7 @@ export function handleWS(bot: Bot): void {
 
 					bot.api.sendMessage(chat.chatId, msg, {
 						message_thread_id: chat.topicId
-							? Number.parseInt(chat.topicId)
+							? Number.parseInt(chat.topicId, 10)
 							: undefined,
 						parse_mode: "HTML",
 						reply_markup: addonUrlButton,
