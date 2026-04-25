@@ -45,10 +45,15 @@ export default {
 		let color: number | undefined;
 
 		if (type === "create") {
-			msg = parseVariables(currentSettings.newAddonMessage, {
-				platforms: newAddon.platforms,
-				...newAddon.modData,
-			});
+			msg = parseVariables(
+				currentSettings.newAddonMessage, 
+				{
+					platforms: newAddon.platforms,
+					...newAddon.modData,
+				},
+				currentSettings.locale,
+				true,
+			);
 
 			iconUrl =
 				newAddon.modData.modrinth?.icon ?? newAddon.modData.curseforge?.icon;
@@ -84,10 +89,15 @@ export default {
 				buttons.addComponents(button);
 			}
 		} else {
-			msg = parseVariables(currentSettings.updatedAddonMessage, {
-				...updatedAddon.changes,
-				names: updatedAddon.names,
-			});
+			msg = parseVariables(
+				currentSettings.updatedAddonMessage, 
+				{
+					...updatedAddon.changes,
+					names: updatedAddon.names,
+				},
+				currentSettings.locale,
+				true,
+			);
 
 			iconUrl = updatedAddon.icons.modrinth ?? updatedAddon.icons.curseforge;
 

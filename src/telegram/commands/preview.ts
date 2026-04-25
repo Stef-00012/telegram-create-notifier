@@ -33,6 +33,7 @@ export default {
 					...newAddon.modData,
 				},
 				ctx.locale,
+				false,
 			);
 
 			return await ctx.reply(parsedMessage, {
@@ -61,6 +62,7 @@ export default {
 					names: updatedAddon.names,
 				},
 				ctx.locale,
+				false,
 			);
 
 			return await ctx.reply(parsedMessage, {
