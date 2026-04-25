@@ -34,7 +34,7 @@ export function utilMiddleware(
 			}
 		}
 
-		ctx.locale = ctx.dbChat?.locale || "en";
+		ctx.locale = ctx.dbChat?.locale || "en-US";
 
 		ctx.localizedAnswerCallbackQuery = async (_other, options) => {
 			let other = _other;

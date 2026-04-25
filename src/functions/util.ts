@@ -8,18 +8,27 @@ type Result<T> = { removed: T[]; added: T[] };
 
 const entitiesParser = new EntitiesParser();
 
-export function compareArrays<T>(oldArray: T[], newArray: T[]): Result<T> {
+export function compareArrays<T>(oldArray: T[] = [], newArray: T[] = []): Result<T> {
+	if (!oldArray || !newArray || (oldArray.length <= 0 && newArray.length <= 0)) {
+		return {
+			removed: [],
+			added: [],
+		};
+	}
+
 	function isObject(item: unknown): item is Record<string, unknown> {
 		return typeof item === "object" && item !== null;
 	}
 
-	function findIndex(arr: T[], target: T): number {
+	function findIndex(arr: T[] = [], target: T): number {
 		if (isObject(target)) {
 			const targetStr = JSON.stringify(target);
+
 			return arr.findIndex((item) =>
 				isObject(item) ? JSON.stringify(item) === targetStr : false,
 			);
 		}
+
 		return arr.indexOf(target);
 	}
 
@@ -128,7 +137,7 @@ function findConditionals(text: string) {
 function parseConditional(
 	_text: string,
 	variables: Record<string, unknown>,
-	locale = "en",
+	locale = "en-US",
 ) {
 	let text = _text;
 	const conditionals = findConditionals(text);
@@ -150,21 +159,24 @@ function parseConditional(
 export function parseVariables(
 	_text: string,
 	variables: Record<string, unknown>,
-	locale = "en",
+	locale = "en-US",
+	discord = false,
 ) {
 	const variableRegex = /{{(?<variable>[^}]+?)}}/gim;
 
 	const text = parseConditional(_text, variables);
 
 	const parsedText = text.replace(variableRegex, (match, variable) => {
-		return parseVariablePath(variable, variables, locale) || match;
+		return parseVariablePath(variable, variables, locale, false, discord) || match;
 	});
 
 	const urlRegex =
 		/\[(?<text>[^\]]+)\]\((?<url>http(s)?:\/\/([\w-])+\.([\w-]+[^)]*)+)\)/gim;
 
 	return parsedText.replace(urlRegex, (match, text, url) => {
-		if (text && url) return `<a href="${url}">${text}</a>`;
+		if (text && url) return discord
+			? `[${text}](${url})`
+			: `<a href="${url}">${text}</a>`;
 
 		return match;
 	});
@@ -173,8 +185,9 @@ export function parseVariables(
 function parseVariablePath<Conditional extends boolean = false>(
 	path: string,
 	obj: Record<string, unknown>,
-	locale = "en",
+	locale = "en-US",
 	conditional = false as Conditional,
+	discord = false,
 ): Conditional extends true ? unknown : string | null {
 	const parts = path.split("/");
 	let prevKey: string | null = null;
@@ -199,7 +212,10 @@ function parseVariablePath<Conditional extends boolean = false>(
 			if (i === parts.length - 1) {
 				return (current as WsAddonDataAuthor[])
 					.filter(Boolean)
-					.map((author) => `<a href="${author.url}">${author.name}</a>`)
+					.map((author) => discord
+						? `[${author.name}](${author.url})`
+						: `<a href="${author.url}">${author.name}</a>`
+					)
 					.join(", ");
 			}
 
@@ -212,7 +228,10 @@ function parseVariablePath<Conditional extends boolean = false>(
 
 				return (prevObj[key] as WsAddonDataAuthor[])
 					.filter(Boolean)
-					.map((author) => author.name)
+					.map((author) => discord
+						? `[${author.name}](${author.url})`
+						: `<a href="${author.url}">${author.name}</a>`
+					)
 					.join(", ");
 			}
 
@@ -221,7 +240,10 @@ function parseVariablePath<Conditional extends boolean = false>(
 
 				return (prevObj[key] as WsAddonDataAuthor[])
 					.filter(Boolean)
-					.map((author) => `<a href="${author.url}">${author.name}</a>`)
+					.map((author) => discord
+						? `[${author.name}](${author.url})`
+						: `<a href="${author.url}">${author.name}</a>`
+					)
 					.join(", ");
 			}
 
@@ -260,7 +282,10 @@ function parseVariablePath<Conditional extends boolean = false>(
 
 					return (comparedArrays[key] as WsAddonDataAuthor[])
 						.filter(Boolean)
-						.map((author) => `<a href="${author.url}">${author.name}</a>`)
+						.map((author) => discord
+							? `[${author.name}](${author.url})`
+							: `<a href="${author.url}">${author.name}</a>`
+						)
 						.join(", ");
 				}
 
@@ -284,7 +309,10 @@ function parseVariablePath<Conditional extends boolean = false>(
 
 					return (previousItem[key] as WsAddonDataAuthor[])
 						.filter(Boolean)
-						.map((author) => `<a href="${author.url}">${author.name}</a>`)
+						.map((author) => discord
+							? `[${author.name}](${author.url})`
+							: `<a href="${author.url}">${author.name}</a>`
+						)
 						.join(", ");
 				}
 
@@ -324,12 +352,12 @@ function parseVariablePath<Conditional extends boolean = false>(
 			if (key === "created" || key === "modified") {
 				prevKey = key;
 
-				return new Date(prevObj[key] as string).toLocaleString(locale ?? "en");
+				return new Date(prevObj[key] as string).toLocaleString(locale ?? "en-US");
 			}
 
 			prevKey = key;
 
-			return new Date(prevObj[key] as string).toLocaleString(locale ?? "en");
+			return new Date(prevObj[key] as string).toLocaleString(locale ?? "en-US");
 		}
 
 		prevKey = key;

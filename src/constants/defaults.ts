@@ -1,4 +1,4 @@
-export const defaultNewAddonMessage = `<blockquote><b>New Addon Created</b></blockquote>{{?modrinth:
+export const telegramDefaultNewAddonMessage = `<blockquote><b>New Addon Created</b></blockquote>{{?modrinth:
 ✦ <b>Modrinth</b>
 <b>Name</b>: {{modrinth/name}}
 <b>Description</b>: {{modrinth/description}}
@@ -23,7 +23,7 @@ export const defaultNewAddonMessage = `<blockquote><b>New Addon Created</b></blo
 <b>Server Side</b>: {{curseforge/serverSide}}
 <b>Modloaders</b>:  {{curseforge/modloaders}}|?}}`;
 
-export const defaultUpdatedAddonMessage = `<blockquote><b>Addon Updated</b></blockquote>{{?modrinth:
+export const telegramDefaultUpdatedAddonMessage = `<blockquote><b>Addon Updated</b></blockquote>{{?modrinth:
 ✦ <b>Modrinth</b>
 <b>Name</b>: {{names/modrinth}}{{?modrinth/versions/added:
 <b>Versions (Added)</b>: {{modrinth/versions/added}}|?}}{{?modrinth/versions/removed:
@@ -41,4 +41,49 @@ export const defaultUpdatedAddonMessage = `<blockquote><b>Addon Updated</b></blo
 <b>Modloaders (Removed)</b>: {{curseforge/modloaders/removed}}|?}}{{?curseforge/createVersion/new:
 <b>Create Version (New)</b>: {{curseforge/createVersion/new}}|?}}{{?curseforge/createVersion/old:
 <b>Create Version (Old)</b>: {{curseforge/createVersion/old}}|?}}
+|?}}`;
+
+export const discordDefaultNewAddonMessage = `> **New Addon Created**{{?modrinth:
+✦ **Modrinth**
+**Name**: {{modrinth/name}}
+**Description**: {{modrinth/description}}
+**Authors**: {{modrinth/authorsUrl}}
+**Versions**: {{modrinth/versions}}{{?modrinth/createVersion:
+**Create Version**: {{modrinth/createVersion}}|?}}
+**Creation Date**: {{modrinth/created}}
+**Categories**: {{modrinth/categories}}
+**Client Side**: {{modrinth/clientSide}}
+**Server Side**: {{modrinth/serverSide}}
+**Modloaders**:  {{modrinth/modloaders}}
+|?}}{{?curseforge:
+✦ **Curseforge**
+**Name**: {{curseforge/name}}
+**Description**: {{curseforge/description}}
+**Authors**: {{curseforge/authorsUrl}}
+**Versions**: {{curseforge/versions}}{{?curseforge/createVersion:
+**Create Version**: {{curseforge/createVersion}}|?}}
+**Creation Date**: {{curseforge/created}}
+**Categories**: {{curseforge/categories}}
+**Client Side**: {{curseforge/clientSide}}
+**Server Side**: {{curseforge/serverSide}}
+**Modloaders**:  {{curseforge/modloaders}}|?}}`;
+
+export const discordDefaultUpdatedAddonMessage = `> **Addon Updated**{{?modrinth:
+✦ **Modrinth**
+**Name**: {{names/modrinth}}{{?modrinth/versions/added:
+**Versions (Added)**: {{modrinth/versions/added}}|?}}{{?modrinth/versions/removed:
+**Versions (Removed)**: {{modrinth/versions/removed}}|?}}{{?modrinth/modloaders/added:
+**Modloaders (Added)**: {{modrinth/modloaders/added}}|?}}{{?modrinth/modloaders/removed:
+**Modloaders (Removed)**: {{modrinth/modloaders/removed}}|?}}{{?modrinth/createVersion/new:
+**Create Version (New)**: {{modrinth/createVersion/new}}|?}}{{?modrinth/createVersion/old:
+**Create Version (Old)**: {{modrinth/createVersion/old}}|?}}
+|?}}{{?curseforge:
+✦ **Curseforge**
+**Name**: {{names/curseforge}}{{?curseforge/versions/added:
+**Versions (Added)**: {{curseforge/versions/added}}|?}}{{?curseforge/versions/removed:
+**Versions (Removed)**: {{curseforge/versions/removed}}|?}}{{?curseforge/modloaders/added:
+**Modloaders (Added)**: {{curseforge/modloaders/added}}|?}}{{?curseforge/modloaders/removed:
+**Modloaders (Removed)**: {{curseforge/modloaders/removed}}|?}}{{?curseforge/createVersion/new:
+**Create Version (New)**: {{curseforge/createVersion/new}}|?}}{{?curseforge/createVersion/old:
+**Create Version (Old)**: {{curseforge/createVersion/old}}|?}}
 |?}}`;

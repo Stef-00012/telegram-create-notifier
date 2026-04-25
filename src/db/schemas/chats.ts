@@ -1,6 +1,6 @@
 import {
-	defaultNewAddonMessage,
-	defaultUpdatedAddonMessage,
+	telegramDefaultNewAddonMessage as telegramDefaultNewAddonMessage,
+	telegramDefaultUpdatedAddonMessage as telegramDefaultUpdatedAddonMessage,
 } from "@/constants/defaults";
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import type { WSAddonDataKeys } from "@/types/addonsWS";
@@ -40,9 +40,9 @@ export const chats = sqliteTable("chats", {
 
 	newAddonMessage: text("new_addon_message")
 		.notNull()
-		.default(defaultNewAddonMessage),
+		.default(telegramDefaultNewAddonMessage),
 
 	updatedAddonMessage: text("updated_addon_message")
 		.notNull()
-		.default(defaultUpdatedAddonMessage),
+		.default(telegramDefaultUpdatedAddonMessage),
 });

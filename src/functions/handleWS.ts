@@ -91,6 +91,7 @@ export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): 
 								...addon.modData,
 							},
 							chat.locale,
+							false,
 						);
 
 						telegramBot.api.sendMessage(chat.chatId, msg, {
@@ -148,10 +149,15 @@ export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): 
 							addonUrlRow.addComponents(button);
 						}
 
-						const msg = parseVariables(guild.newAddonMessage, {
-							platforms: addon.platforms,
-							...addon.modData,
-						});
+						const msg = parseVariables(
+							guild.newAddonMessage, 
+							{
+								platforms: addon.platforms,
+								...addon.modData,
+							}, 
+							guild.locale, 
+							true
+						);
 
 						const iconUrl =
 							addon.modData.modrinth?.icon ?? addon.modData.curseforge?.icon;
@@ -232,6 +238,7 @@ export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): 
 								names: addon.names
 							},
 							chat.locale,
+							false,
 						);
 
 						telegramBot.api.sendMessage(chat.chatId, msg, {
@@ -259,27 +266,24 @@ export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): 
 					for (const addon of data) {
 						const curseforgeKeys = Object.keys(addon.changes.curseforge ?? {});
 
-						if (
-							curseforgeKeys.every(
-								(key) => !guild.filteredKeys.includes(key as keyof WSAddonData),
-							)
-						)
-							addon.changes.curseforge = null;
+						if (curseforgeKeys.every(
+							(key) => !guild.filteredKeys.includes(key as keyof WSAddonData),
+						)) addon.changes.curseforge = null;
 
 						const modrinthKeys = Object.keys(addon.changes.modrinth ?? {});
 
-						if (
-							modrinthKeys.every(
-								(key) => !guild.filteredKeys.includes(key as keyof WSAddonData),
-							)
-						)
-							addon.changes.modrinth = null;
+						if (modrinthKeys.every(
+							(key) => !guild.filteredKeys.includes(key as keyof WSAddonData),
+						)) addon.changes.modrinth = null;
 
-						if (!addon.changes.curseforge && !addon.changes.modrinth) continue;
+						if (
+							!addon.changes.curseforge &&
+							!addon.changes.modrinth
+						) continue;
 
 						const addonUrlRow = new ActionRowBuilder<ButtonBuilder>();
 
-						if (addon.changes.modrinth) {
+						if (addon.slugs.modrinth) {
 							const button = new ButtonBuilder()
 								.setLabel(await discordBot.localizeStringWithLocale("websocket.messages.openOnModrinth", guild.locale))
 								.setStyle(ButtonStyle.Link)
@@ -292,7 +296,7 @@ export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): 
 							addonUrlRow.addComponents(button);
 						}
 
-						if (addon.changes.curseforge) {
+						if (addon.slugs.curseforge) {
 							const button = new ButtonBuilder()
 								.setLabel(await discordBot.localizeStringWithLocale("websocket.messages.openOnCurseforge", guild.locale))
 								.setStyle(ButtonStyle.Link)
@@ -307,10 +311,15 @@ export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): 
 							addonUrlRow.addComponents(button);
 						}
 
-						const msg = parseVariables(guild.updatedAddonMessage, {
-							...addon.changes,
-							names: addon.names,
-						});
+						const msg = parseVariables(
+							guild.updatedAddonMessage,
+							{
+								...addon.changes,
+								names: addon.names,
+							}, 
+							guild.locale,
+							true
+						);
 
 						const iconUrl = addon.icons.modrinth ?? addon.icons.curseforge;
 

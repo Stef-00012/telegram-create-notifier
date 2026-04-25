@@ -24,7 +24,7 @@ const localesDir = path.join(__dirname, "../locales");
 
 export async function getSettingsPanel(
 	section: Sections = "home",
-	locale = "en",
+	locale = "en-US",
 	data?: Partial<Data>,
 ) {
 	const settingsPanel = new InlineKeyboard();
@@ -146,7 +146,7 @@ export async function getSettingsPanel(
 export async function handleSettingsPanel(
 	ctx: ConversationFlavor<Context>,
 	value: string,
-	locale = "en",
+	locale = "en-US",
 	chatId?: string,
 ) {
 	if (!ctx.isAdmin)

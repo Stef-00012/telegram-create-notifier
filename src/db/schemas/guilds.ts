@@ -1,7 +1,7 @@
 import type { WSAddonDataKeys } from "@/types/addonsWS";
 import {
-	defaultNewAddonMessage,
-	defaultUpdatedAddonMessage,
+	discordDefaultNewAddonMessage,
+	discordDefaultUpdatedAddonMessage,
 } from "@/constants/defaults";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
@@ -33,11 +33,11 @@ export const guilds = sqliteTable("guilds", {
 
 	newAddonMessage: text("new_addon_message")
 		.notNull()
-		.default(defaultNewAddonMessage),
+		.default(discordDefaultNewAddonMessage),
 
 	updatedAddonMessage: text("updated_addon_message")
 		.notNull()
-		.default(defaultUpdatedAddonMessage),
+		.default(discordDefaultUpdatedAddonMessage),
 
 	locale: text("locale").notNull().default("en-US"),
 });
