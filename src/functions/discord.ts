@@ -1,3 +1,4 @@
+import type { Client } from "@/discord/structures/DiscordClient";
 import {
 	type ActionRowBuilder,
 	type ButtonBuilder,
@@ -8,15 +9,33 @@ import {
 	ThumbnailBuilder,
 } from "discord.js";
 
-export function createAddonContainer(
+export async function createAddonContainer(
 	text: string,
 	buttons: ActionRowBuilder<ButtonBuilder>,
 	type: "create" | "update",
+	client: Client,
+	locale: string | null = "en-US",
+	guildId?: string | null,
 	iconUrl?: string | null,
 	color?: number,
 ) {
+	const createdTitle = locale 
+		? await client.localizeStringWithLocale("websocket.messages.discord.addonCreated", locale)
+		: guildId
+			? await client.localizeString("websocket.messages.discord.addonCreated", guildId)
+			: "New Addon Created";
+
+	const updatedTitle = locale
+		? await client.localizeStringWithLocale("websocket.messages.discord.addonUpdated", locale)
+		: guildId
+			? await client.localizeString("websocket.messages.discord.addonUpdated", guildId)
+			: "Addon Updated";
+
 	const mainTitleTextDisplay = new TextDisplayBuilder().setContent(
-		`## ${type === "create" ? "New Addon Created" : "Addon Updated"}`,
+		`## ${type === "create" 
+			? createdTitle 
+			: updatedTitle
+		}`,
 	);
 
 	const mainTextDisplay = new TextDisplayBuilder().setContent(text);

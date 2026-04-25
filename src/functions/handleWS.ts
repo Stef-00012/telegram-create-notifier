@@ -162,10 +162,13 @@ export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): 
 						const iconUrl =
 							addon.modData.modrinth?.icon ?? addon.modData.curseforge?.icon;
 
-						const container = createAddonContainer(
+						const container = await createAddonContainer(
 							msg,
 							addonUrlRow,
 							"create",
+							discordBot,
+							guild.locale,
+							guild.id,
 							iconUrl,
 							addon.modData.modrinth?.color ?? addon.modData.curseforge?.color,
 						);
@@ -323,10 +326,13 @@ export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): 
 
 						const iconUrl = addon.icons.modrinth ?? addon.icons.curseforge;
 
-						const container = createAddonContainer(
+						const container = await createAddonContainer(
 							msg,
 							addonUrlRow,
 							"update",
+							discordBot,
+							guild.locale,
+							guild.id,
 							iconUrl,
 						);
 

@@ -120,7 +120,7 @@ export default {
 			}
 		}
 
-		const container = createAddonContainer(msg, buttons, type, iconUrl, color);
+		const container = await createAddonContainer(msg, buttons, type, client, null, guildId, iconUrl, color);
 
 		await interaction.reply({
 			components: [container],

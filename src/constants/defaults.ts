@@ -43,7 +43,7 @@ export const telegramDefaultUpdatedAddonMessage = `<blockquote><b>Addon Updated<
 <b>Create Version (Old)</b>: {{curseforge/createVersion/old}}|?}}
 |?}}`;
 
-export const discordDefaultNewAddonMessage = `> **New Addon Created**{{?modrinth:
+export const discordDefaultNewAddonMessage = `{{?modrinth:
 ✦ **Modrinth**
 **Name**: {{modrinth/name}}
 **Description**: {{modrinth/description}}
@@ -68,7 +68,7 @@ export const discordDefaultNewAddonMessage = `> **New Addon Created**{{?modrinth
 **Server Side**: {{curseforge/serverSide}}
 **Modloaders**:  {{curseforge/modloaders}}|?}}`;
 
-export const discordDefaultUpdatedAddonMessage = `> **Addon Updated**{{?modrinth:
+export const discordDefaultUpdatedAddonMessage = `{{?modrinth:
 ✦ **Modrinth**
 **Name**: {{names/modrinth}}{{?modrinth/versions/added:
 **Versions (Added)**: {{modrinth/versions/added}}|?}}{{?modrinth/versions/removed:

@@ -63,6 +63,9 @@
 	"websocket.variables.clientServerSide.optional": "Optional",
 	"websocket.variables.clientServerSide.unsupported": "Unsupported",
 
+	"websocket.messages.discord.addonCreated": "New Addon Created",
+	"websocket.messages.discord.addonUpdated": "Addon Updated",
+
 	"discord.commands.setchannel.name": "setchannel",
 	"discord.commands.setchannel.description": "Set the channel where the bot will send the notifications for the addons",
 	"discord.commands.setchannel.options.channel.name": "channel",
