@@ -16,7 +16,9 @@ export default {
 		});
 
 		ctx.localizedReply("telegram.commands.settings.messages.success", {
-			reply_markup: settingsPanel,
+			other: {
+				reply_markup: settingsPanel,
+			}
 		});
 	},
 } satisfies TelegramCommand;

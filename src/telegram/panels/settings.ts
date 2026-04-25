@@ -274,7 +274,7 @@ export async function handleSettingsPanel(
 
 		await ctx.localizedAnswerCallbackQuery(
 			"telegram.panels.settings.messages.successUpdate",
-			locale,
+			{ locale }
 		);
 
 		return ctx.editMessageText(
@@ -330,11 +330,13 @@ export async function handleMessageConversation(
 	await ctx.localizedReply(
 		`telegram.panels.settings.messages.changeMessages.${messageType}.variables`,
 		{
-			reply_markup: {
-				force_reply: true,
+			other: {
+				reply_markup: {
+					force_reply: true,
+				},
+				parse_mode: "HTML",
 			},
-			parse_mode: "HTML",
-		},
+		}
 	);
 
 	const { msg } = await conversation

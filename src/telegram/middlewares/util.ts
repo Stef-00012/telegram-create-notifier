@@ -36,26 +36,26 @@ export function utilMiddleware(
 
 		ctx.locale = ctx.dbChat?.locale || "en";
 
-		ctx.localizedAnswerCallbackQuery = async (_other, _locale, signal) => {
+		ctx.localizedAnswerCallbackQuery = async (_other, options) => {
 			let other = _other;
 
-			const locale = _locale || ctx.locale;
+			const locale = options?.locale || ctx.locale;
 
 			if (typeof other === "string") {
 				other = localize(locale, other);
 			} else if (other?.text) {
-				other.text = localize(locale, other.text);
+				other.text = localize(locale, other.text, options?.variables);
 			}
 
-			return ctx.answerCallbackQuery(other, signal);
+			return ctx.answerCallbackQuery(other, options?.signal);
 		};
 
-		ctx.localizedReply = async (_text, other, _locale, signal) => {
-			const locale = _locale || ctx.locale;
+		ctx.localizedReply = async (_text, options) => {
+			const locale = options?.locale || ctx.locale;
 
-			const text = localize(locale, _text);
+			const text = localize(locale, _text, options?.variables);
 
-			return ctx.reply(text, other || undefined, signal);
+			return ctx.reply(text, options?.other || undefined, options?.signal);
 		};
 
 		ctx.botStatus = ctx.myChatMember?.new_chat_member.status;

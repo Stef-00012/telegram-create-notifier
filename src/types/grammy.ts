@@ -22,14 +22,20 @@ export interface Context extends BaseContext {
 
 	localizedAnswerCallbackQuery: (
 		other?: Parameters<Context["answerCallbackQuery"]>[0],
-		locale?: string,
-		signal?: Parameters<Context["answerCallbackQuery"]>[1],
+		options?: {
+			locale?: string,
+			signal?: Parameters<Context["answerCallbackQuery"]>[1],
+			variables?: Record<string, string>,
+		}
 	) => ReturnType<Context["answerCallbackQuery"]>;
 	localizedReply: (
 		text: Parameters<Context["reply"]>[0],
-		other?: Parameters<Context["reply"]>[1] | null,
-		locale?: string,
-		signal?: Parameters<Context["reply"]>[2],
+		options?: {
+			other?: Parameters<Context["reply"]>[1] | null,
+			locale?: string,
+			signal?: Parameters<Context["reply"]>[2],
+			variables?: Record<string, string>,
+		},
 	) => ReturnType<Context["reply"]>;
 
 	isAdmin: boolean;

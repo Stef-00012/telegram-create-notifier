@@ -14,6 +14,10 @@ export default {
 			`\`/search [query] [modloader] [version] [platform] [sort] [page]\` - ${await client.localizeString("discord.commands.search.description", guildId)}`,
 			`\`/preview <type>\` - ${await client.localizeString("discord.commands.preview.description", guildId)}`,
 			`\`/settings\` - ${await client.localizeString("discord.commands.settings.description", guildId)}`,
+			"",
+			`-# ${await client.localizeString("discord.commands.help.footer", guildId, {
+				link: process.env.TELEGRAM_INVITE_URL || "https://t.me/CreateAddonsNotifierBot",
+			})}`,
 		];
 
 		const embed = new EmbedBuilder()

@@ -12,13 +12,22 @@ export default {
 		const openSourceButton = new InlineKeyboard()
 			.url(
 				localize(ctx.locale, "telegram.commands.start.buttons.viewSource"),
-				"https://github.com/Stef-00012/telegram-create-notifier",
+				"https://git.stefdp.com/Stef/telegram-create-notifier",
 			)
 			.row();
 
 		return await ctx.localizedReply("telegram.commands.start.messages.success", {
-			reply_markup: openSourceButton,
-			parse_mode: "HTML",
+			other: {
+				reply_markup: openSourceButton,
+				parse_mode: "HTML",
+				link_preview_options: {
+					is_disabled: true,
+				}
+			},
+			variables: {
+				link_start: `<a href="${process.env.DISCORD_INVITE_URL || "https://discord.com/oauth2/authorize?client_id=1390937506710683708"}">`,
+				link_end: '</a>',
+			}
 		});
 	},
 } satisfies TelegramCommand;

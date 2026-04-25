@@ -49,7 +49,7 @@
 	"telegram.commands.settings.messages.notConfigured": "This chat has not been configured for the addons notifications",
 	"telegram.commands.settings.messages.success": "Settings for the Create addons notifications",
 
-	"telegram.commands.start.messages.success": "Welcome! This bot will allow you to receive notification when an addon for the Minecraft mod \"Create\" gets updated or created.\nMy commands are:\n\n- /setchannel - Sets the channel where to send addon notifications.\n- /settings - Manage the settings of the bot.\n- /preview <code>[new|update]</code> <code>(raw)</code>\n\n<b>NOTE: <code>[]</code> = required, <code>()</code> = optional, <code>|</code> = OR</b>\n\nMade by @Stef_DP and published on GitHub.",
+	"telegram.commands.start.messages.success": "Welcome! This bot will allow you to receive notification when an addon for the Minecraft mod \"Create\" gets updated or created.\nMy commands are:\n\n- /setchannel - Sets the channel where to send addon notifications.\n- /settings - Manage the settings of the bot.\n- /preview <code>[new|update]</code> <code>(raw)</code>\n\n<b>NOTE: <code>[]</code> = required, <code>()</code> = optional, <code>|</code> = OR</b>\n\nMade by @Stef_DP and published on GitHub.\nThe bot is also available on {{link_start}}Discord{{link_end}}.",
 	"telegram.commands.start.buttons.viewSource": "View the Source",
 
 	"telegram.commands.preview.messages.notConfigured": "This chat has not been configured for the addons notifications",
@@ -111,6 +111,7 @@
 
 	"discord.commands.help.name": "help",
 	"discord.commands.help.description": "List the bot's commands",
+	"discord.commands.help.footer": "The bot is also available on [Telegram]({{link}})",
 
 	"discord.commands.mod.name": "mod",
 	"discord.commands.mod.description": "Get the info about a specific mod",

@@ -35,8 +35,9 @@ export default {
 
 		return await ctx.localizedReply(
 			"telegram.commands.setchannel.messages.success",
-			null,
-			newChat.locale,
+			{
+				locale: newChat.locale,
+			}
 		);
 	},
 } satisfies TelegramCommand;
