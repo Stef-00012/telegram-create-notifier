@@ -32,29 +32,29 @@ export async function getSettingsPanel(
 	if (section === "home") {
 		settingsPanel
 			.text(
-				localize(locale, "panels.settings.buttons.goFilters"),
+				localize(locale, "telegram.panels.settings.buttons.goFilters"),
 				"settings__go_filters",
 			)
 			.row()
 			.text(
-				localize(locale, "panels.settings.buttons.goEvents"),
+				localize(locale, "telegram.panels.settings.buttons.goEvents"),
 				"settings__go_events",
 			)
 			.row()
 			.text(
-				localize(locale, "panels.settings.buttons.goLocales"),
+				localize(locale, "telegram.panels.settings.buttons.goLocales"),
 				"settings__go_locales",
 			)
 			.row()
 			.text(
-				localize(locale, "panels.settings.buttons.changeMessages"),
+				localize(locale, "telegram.panels.settings.buttons.changeMessages"),
 				"settings__go_messages",
 			)
 			.row()
 			.text(
 				`${data?.enabled ? "✔️ " : ""}${localize(
 					locale,
-					"panels.settings.buttons.notifications",
+					"telegram.panels.settings.buttons.notifications",
 				)}`,
 				"settings__toggle_enabled",
 			);
@@ -65,7 +65,7 @@ export async function getSettingsPanel(
 			settingsPanel.text(
 				`${data?.filteredKeys?.includes(key) ? "✔️ " : ""}${localize(
 					locale,
-					`panels.settings.buttons.filters.${key}`,
+					`telegram.panels.settings.buttons.filters.${key}`,
 				)}`,
 				`settings__filters_${key}`,
 			);
@@ -79,7 +79,7 @@ export async function getSettingsPanel(
 		}
 
 		settingsPanel.text(
-			localize(locale, "panels.buttons.back"),
+			localize(locale, "telegram.panels.buttons.back"),
 			"settings__go_home",
 		);
 	} else if (section === "events") {
@@ -87,19 +87,19 @@ export async function getSettingsPanel(
 			.text(
 				`${data?.events?.includes("create") ? "✔️ " : ""}${localize(
 					locale,
-					"panels.settings.buttons.events.newAddon",
+					"telegram.panels.settings.buttons.events.newAddon",
 				)}`,
 				"settings__events_create",
 			)
 			.text(
 				`${data?.events?.includes("update") ? "✔️ " : ""}${localize(
 					locale,
-					"panels.settings.buttons.events.updatedAddon",
+					"telegram.panels.settings.buttons.events.updatedAddon",
 				)}`,
 				"settings__events_update",
 			)
 			.row()
-			.text(localize(locale, "panels.buttons.back"), "settings__go_home");
+			.text(localize(locale, "telegram.panels.buttons.back"), "settings__go_home");
 	} else if (section === "locales") {
 		const locales = fs
 			.readdirSync(localesDir)
@@ -123,21 +123,21 @@ export async function getSettingsPanel(
 		}
 
 		settingsPanel.text(
-			localize(locale, "panels.buttons.back"),
+			localize(locale, "telegram.panels.buttons.back"),
 			"settings__go_home",
 		);
 	} else if (section === "messages") {
 		settingsPanel
 			.text(
-				localize(locale, "panels.settings.buttons.changeMessages.newAddon"),
+				localize(locale, "telegram.panels.settings.buttons.changeMessages.newAddon"),
 				"settings__messages_newAddonMessage",
 			)
 			.text(
-				localize(locale, "panels.settings.buttons.changeMessages.updatedAddon"),
+				localize(locale, "telegram.panels.settings.buttons.changeMessages.updatedAddon"),
 				"settings__messages_updatedAddonMessage",
 			)
 			.row()
-			.text(localize(locale, "panels.buttons.back"), "settings__go_home");
+			.text(localize(locale, "telegram.panels.buttons.back"), "settings__go_home");
 	}
 
 	return settingsPanel;
@@ -150,13 +150,13 @@ export async function handleSettingsPanel(
 	chatId?: string,
 ) {
 	if (!ctx.isAdmin)
-		return ctx.localizedAnswerCallbackQuery("panels.messages.unauthorized");
+		return ctx.localizedAnswerCallbackQuery("telegram.panels.messages.unauthorized");
 
-	if (!chatId) return ctx.localizedAnswerCallbackQuery("messages.error");
+	if (!chatId) return ctx.localizedAnswerCallbackQuery("telegram.messages.error");
 
 	const oldChat = ctx.dbChat;
 
-	if (!oldChat) return ctx.localizedAnswerCallbackQuery("messages.error");
+	if (!oldChat) return ctx.localizedAnswerCallbackQuery("telegram.messages.error");
 
 	if (value.startsWith("go_")) {
 		const section = value.replace("go_", "") as Sections;
@@ -193,7 +193,7 @@ export async function handleSettingsPanel(
 		});
 
 		await ctx.localizedAnswerCallbackQuery(
-			"panels.settings.messages.successUpdate",
+			"telegram.panels.settings.messages.successUpdate",
 		);
 
 		return ctx.editMessageReplyMarkup({
@@ -219,7 +219,7 @@ export async function handleSettingsPanel(
 		});
 
 		await ctx.localizedAnswerCallbackQuery(
-			`panels.settings.messages.toggles.${setting}.${newChat.enabled ? "on" : "off"}`,
+			`telegram.panels.settings.messages.toggles.${setting}.${newChat.enabled ? "on" : "off"}`,
 		);
 
 		return ctx.editMessageReplyMarkup({
@@ -248,7 +248,7 @@ export async function handleSettingsPanel(
 		});
 
 		await ctx.localizedAnswerCallbackQuery(
-			"panels.settings.messages.successUpdate",
+			"telegram.panels.settings.messages.successUpdate",
 		);
 
 		return ctx.editMessageReplyMarkup({
@@ -273,12 +273,12 @@ export async function handleSettingsPanel(
 		});
 
 		await ctx.localizedAnswerCallbackQuery(
-			"panels.settings.messages.successUpdate",
+			"telegram.panels.settings.messages.successUpdate",
 			locale,
 		);
 
 		return ctx.editMessageText(
-			localize(locale, "commands.settings.messages.success"),
+			localize(locale, "telegram.commands.settings.messages.success"),
 			{
 				reply_markup: newSettingsPanel,
 			},
@@ -290,7 +290,7 @@ export async function handleSettingsPanel(
 
 		if (conversations[conversationId] > 0)
 			return await ctx.localizedAnswerCallbackQuery(
-				"panels.settings.messages.changeMessages.ongoingConversation",
+				"telegram.panels.settings.messages.changeMessages.ongoingConversation",
 			);
 
 		await ctx.conversation.enter(conversationId);
@@ -313,22 +313,22 @@ export async function handleMessageConversation(
 
 	// if (!chat) {
 	if (!ctx.dbChat) {
-		await ctx.localizedReply("messages.error");
+		await ctx.localizedReply("telegram.messages.error");
 
 		return await conversation.halt();
 	}
 
 	if (!ctx.from?.id || !ctx.callbackQuery?.data)
-		return await ctx.localizedReply("messages.error");
+		return await ctx.localizedReply("telegram.messages.error");
 
 	const messageType = ctx.callbackQuery.data.replace("settings__messages_", "");
 
 	await ctx.localizedAnswerCallbackQuery(
-		`panels.settings.messages.changeMessages.${messageType}`,
+		`telegram.panels.settings.messages.changeMessages.${messageType}`,
 	);
 
 	await ctx.localizedReply(
-		`panels.settings.messages.changeMessages.${messageType}.variables`,
+		`telegram.panels.settings.messages.changeMessages.${messageType}.variables`,
 		{
 			reply_markup: {
 				force_reply: true,
@@ -347,7 +347,7 @@ export async function handleMessageConversation(
 
 	if (parsedText.toLowerCase() === "cancel") {
 		await ctx.localizedReply(
-			`panels.settings.messages.changeMessages.${messageType}.cancel`,
+			`telegram.panels.settings.messages.changeMessages.${messageType}.cancel`,
 		);
 
 		return await conversation.halt();
@@ -366,7 +366,7 @@ export async function handleMessageConversation(
 	});
 
 	await ctx.localizedReply(
-		`panels.settings.messages.changeMessages.${messageType}.success`,
+		`telegram.panels.settings.messages.changeMessages.${messageType}.success`,
 	);
 
 	return await conversation.halt();

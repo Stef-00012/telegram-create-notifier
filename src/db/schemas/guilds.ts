@@ -1,21 +1,16 @@
+import type { WSAddonDataKeys } from "@/types/addonsWS";
 import {
 	defaultNewAddonMessage,
 	defaultUpdatedAddonMessage,
 } from "@/constants/defaults";
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
-import type { WSAddonDataKeys } from "@/types/addonsWS";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export type DBEvents = ("create" | "update")[];
 
-export const chats = sqliteTable("chats", {
-	chatId: text("chat_id").notNull().primaryKey(),
-
-	chatType: text("chat_type")
-		.notNull()
-		.$type<"channel" | "private" | "group" | "supergroup">(),
-
-	topicId: text("topic_id"),
-
+export const guilds = sqliteTable("guilds", {
+	id: text("guild_id").notNull().primaryKey(),
+	webhook: text("webhook_url").notNull(),
+	channel: text("channel_id").notNull(),
 	enabled: integer("enabled", {
 		mode: "boolean",
 	})
@@ -36,8 +31,6 @@ export const chats = sqliteTable("chats", {
 		.$type<DBEvents>()
 		.default(["create", "update"]),
 
-	locale: text("locale").notNull().default("en-US"),
-
 	newAddonMessage: text("new_addon_message")
 		.notNull()
 		.default(defaultNewAddonMessage),
@@ -45,4 +38,6 @@ export const chats = sqliteTable("chats", {
 	updatedAddonMessage: text("updated_addon_message")
 		.notNull()
 		.default(defaultUpdatedAddonMessage),
+
+	locale: text("locale").notNull().default("en-US"),
 });

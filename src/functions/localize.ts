@@ -1,11 +1,24 @@
 import { locales } from "@/bot";
 
-export function localize(locale: string, key: string): string {
-	if (!(locale in locales))
-		return `<Unknown locale "${locale}" (key: "${key}")>`;
+export function localize(_locale: string, key: string, variables?: Record<string, string>): string {
+	let locale = _locale;
+	
+	if (!(locale in locales)) locale = "en-US"; 
 
-	return (
-		locales[locale][key] ??
-		`<Missing translation for "${key}" (locale: "${locale}")>`
-	);
+	const translation = locales[locale][key];
+
+	if (!translation) {
+		console.error(`\x1b[31mMissing translation for \x1b[0m"${key}" \x1b[31m(locale: \x1b[0m"${locale}"\x1b[31m)\x1b[0m`);
+
+		return `<Missing Translation>`;
+	}
+
+	if (variables) {
+		return Object.keys(variables).reduce((string, variableKey) => {
+			const varValue = variables[variableKey];
+			return string.replace(new RegExp(`{{${variableKey}}}`, "g"), varValue);
+		}, translation);
+	}
+
+	return translation;
 }

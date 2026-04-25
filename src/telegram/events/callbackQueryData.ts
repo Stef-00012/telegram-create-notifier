@@ -1,5 +1,5 @@
-import { handleSettingsPanel } from "@/panels/settings";
-import type { Event } from "@/types/handlers";
+import { handleSettingsPanel } from "@/telegram/panels/settings";
+import type { TelegramEvent } from "@/types/handlers";
 
 export default {
 	name: "callback_query:data",
@@ -16,6 +16,6 @@ export default {
 				chatId,
 			);
 
-		await ctx.localizedAnswerCallbackQuery("messages.error");
+		await ctx.localizedAnswerCallbackQuery("telegram.messages.error");
 	},
-} satisfies Event<"callback_query:data">;
+} satisfies TelegramEvent<"callback_query:data">;

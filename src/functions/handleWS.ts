@@ -3,6 +3,7 @@ import { InlineKeyboard } from "grammy";
 import type { Bot } from "@/bot";
 import WebSocket from "ws";
 import db from "@/db/db";
+import type { Client } from "@/discord/structures/DiscordClient";
 import { parseVariables } from "@/functions/util";
 import {
 	type CreateMessage,
@@ -12,8 +13,10 @@ import {
 	type WSAddonData,
 	WSEvents,
 } from "@/types/addonsWS";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, WebhookClient } from "discord.js";
+import { createAddonContainer } from "./discord";
 
-export function handleWS(bot: Bot): void {
+export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): void {
 	const wsUrl = `ws${process.env.CREATE_ADDONS_SECURE === "true" ? "s" : ""}://${process.env.CREATE_ADDONS_BASE_URL}/ws`;
 
 	const socket = new WebSocket(wsUrl);
@@ -28,7 +31,7 @@ export function handleWS(bot: Bot): void {
 		);
 
 		setTimeout(() => {
-			handleWS(bot)
+			handleWS(telegramBot, discordBot);
 		}, 10000);
 	});
 
@@ -51,53 +54,128 @@ export function handleWS(bot: Bot): void {
 		}
 
 		const chats = await db.query.chats.findMany();
+		const guilds = await db.query.guilds.findMany();
 
 		if (message.type === WSEvents.CREATE) {
 			const data = message.data;
 
-			for (const chat of chats) {
-				if (!chat.enabled || !chat.events.includes("create")) continue;
+			if (telegramBot) {
+				for (const chat of chats) {
+					if (!chat.enabled || !chat.events.includes("create")) continue;
 
-				for (const addon of data) {
-					const addonUrlButton = new InlineKeyboard();
+					for (const addon of data) {
+						const addonUrlButton = new InlineKeyboard();
 
-					if (addon.modData.modrinth) {
-						addonUrlButton
-							.url(
-								localize(chat.locale, "websocket.messages.openOnModrinth"),
-								`https://modrinth.com/mod/${addon.modData.modrinth.slug}`,
-							)
-							.row();
+						if (addon.modData.modrinth) {
+							addonUrlButton
+								.url(
+									localize(chat.locale, "websocket.messages.openOnModrinth"),
+									`https://modrinth.com/mod/${addon.modData.modrinth.slug}`,
+								)
+								.row();
+						}
+
+						if (addon.modData.curseforge) {
+							addonUrlButton
+								.url(
+									localize(chat.locale, "websocket.messages.openOnCurseforge"),
+									`https://curseforge.com/minecraft/mc-mods/${addon.modData.curseforge.slug}`,
+								)
+								.row();
+						}
+
+						const msg = parseVariables(
+							chat.newAddonMessage,
+							{
+								platforms: addon.platforms,
+								...addon.modData,
+							},
+							chat.locale,
+						);
+
+						telegramBot.api.sendMessage(chat.chatId, msg, {
+							message_thread_id: chat.topicId
+								? Number.parseInt(chat.topicId, 10)
+								: undefined,
+							parse_mode: "HTML",
+							reply_markup: addonUrlButton,
+							link_preview_options: {
+								is_disabled: true,
+							},
+						});
 					}
+				}
+			}
 
-					if (addon.modData.curseforge) {
-						addonUrlButton
-							.url(
-								localize(chat.locale, "websocket.messages.openOnCurseforge"),
-								`https://curseforge.com/minecraft/mc-mods/${addon.modData.curseforge.slug}`,
-							)
-							.row();
-					}
+			if (discordBot) {
+				for (const guild of guilds) {
+					if (!guild.enabled || !guild.events.includes("create")) continue;
 
-					const msg = parseVariables(
-						chat.newAddonMessage,
-						{
+					const webhookClient = new WebhookClient({
+						url: guild.webhook,
+					});
+
+					for (const addon of data) {
+						const addonUrlRow = new ActionRowBuilder<ButtonBuilder>();
+
+						if (addon.modData.modrinth) {
+							const button = new ButtonBuilder()
+								.setLabel(await discordBot.localizeStringWithLocale("websocket.messages.openOnModrinth", guild.locale))
+								.setStyle(ButtonStyle.Link)
+								.setEmoji({
+									id: process.env.MODRINTH_EMOJI_ID,
+									name: "modrinth",
+								})
+								.setURL(
+									`https://modrinth.com/mod/${addon.modData.modrinth.slug}`,
+								);
+
+							addonUrlRow.addComponents(button);
+						}
+
+						if (addon.modData.curseforge) {
+							const button = new ButtonBuilder()
+								.setLabel(await discordBot.localizeStringWithLocale("websocket.messages.openOnCurseforge", guild.locale))
+								.setStyle(ButtonStyle.Link)
+								.setEmoji({
+									id: process.env.CURSEFORGE_EMOJI_ID,
+									name: "curseforge",
+								})
+								.setURL(
+									`https://curseforge.com/minecraft/mc-mods/${addon.modData.curseforge.slug}`,
+								);
+
+							addonUrlRow.addComponents(button);
+						}
+
+						const msg = parseVariables(guild.newAddonMessage, {
 							platforms: addon.platforms,
 							...addon.modData,
-						},
-						chat.locale,
-					);
+						});
 
-					bot.api.sendMessage(chat.chatId, msg, {
-						message_thread_id: chat.topicId
-							? Number.parseInt(chat.topicId, 10)
-							: undefined,
-						parse_mode: "HTML",
-						reply_markup: addonUrlButton,
-						link_preview_options: {
-							is_disabled: true,
-						},
-					});
+						const iconUrl =
+							addon.modData.modrinth?.icon ?? addon.modData.curseforge?.icon;
+
+						const container = createAddonContainer(
+							msg,
+							addonUrlRow,
+							"create",
+							iconUrl,
+							addon.modData.modrinth?.color ?? addon.modData.curseforge?.color,
+						);
+
+						try {
+							await webhookClient.send({
+								components: [container],
+								flags: MessageFlags.IsComponentsV2,
+							});
+						} catch (e) {
+							console.error(
+								`Failed to send addon message to guild "${guild.id}":`,
+								e,
+							);
+						}
+					}
 				}
 			}
 		}
@@ -105,66 +183,156 @@ export function handleWS(bot: Bot): void {
 		if (message.type === WSEvents.UPDATE) {
 			const data = message.data;
 
-			for (const chat of chats) {
-				if (!chat.enabled || !chat.events.includes("update")) continue;
+			if (telegramBot) {
+				for (const chat of chats) {
+					if (!chat.enabled || !chat.events.includes("update")) continue;
 
-				for (const addon of data) {
-					const curseforgeKeys = Object.keys(addon.changes.curseforge ?? {})
+					for (const addon of data) {
+						const curseforgeKeys = Object.keys(addon.changes.curseforge ?? {})
 
-					if (curseforgeKeys.every(
-						(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
-					)) addon.changes.curseforge = null
+						if (curseforgeKeys.every(
+							(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
+						)) addon.changes.curseforge = null
 
-					const modrinthKeys = Object.keys(addon.changes.modrinth ?? {})
+						const modrinthKeys = Object.keys(addon.changes.modrinth ?? {})
 
-					if (modrinthKeys.every(
-						(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
-					)) addon.changes.modrinth = null
+						if (modrinthKeys.every(
+							(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
+						)) addon.changes.modrinth = null
 
-					if (
-						!addon.changes.curseforge &&
-						!addon.changes.modrinth
-					) continue;
+						if (
+							!addon.changes.curseforge &&
+							!addon.changes.modrinth
+						) continue;
 
-					const addonUrlButton = new InlineKeyboard();
+						const addonUrlButton = new InlineKeyboard();
 
-					if (addon.slugs.modrinth) {
-						addonUrlButton
-							.url(
-								localize(chat.locale, "websocket.messages.openOnModrinth"),
-								`https://modrinth.com/mod/${addon.slugs.modrinth}`,
-							)
-							.row();
+						if (addon.slugs.modrinth) {
+							addonUrlButton
+								.url(
+									localize(chat.locale, "websocket.messages.openOnModrinth"),
+									`https://modrinth.com/mod/${addon.slugs.modrinth}`,
+								)
+								.row();
+						}
+
+						if (addon.slugs.curseforge) {
+							addonUrlButton
+								.url(
+									localize(chat.locale, "websocket.messages.openOnCurseforge"),
+									`https://curseforge.com/minecraft/mc-mods/${addon.slugs.curseforge}`,
+								)
+								.row();
+						}
+
+						const msg = parseVariables(
+							chat.updatedAddonMessage,
+							{
+								...addon.changes,
+								names: addon.names
+							},
+							chat.locale,
+						);
+
+						telegramBot.api.sendMessage(chat.chatId, msg, {
+							message_thread_id: chat.topicId
+								? Number.parseInt(chat.topicId, 10)
+								: undefined,
+							parse_mode: "HTML",
+							reply_markup: addonUrlButton,
+							link_preview_options: {
+								is_disabled: true,
+							},
+						});
 					}
+				}
+			}
 
-					if (addon.slugs.curseforge) {
-						addonUrlButton
-							.url(
-								localize(chat.locale, "websocket.messages.openOnCurseforge"),
-								`https://curseforge.com/minecraft/mc-mods/${addon.slugs.curseforge}`,
-							)
-							.row();
-					}
+			if (discordBot) {
+				for (const guild of guilds) {
+					if (!guild.enabled || !guild.events.includes("update")) continue;
 
-					const msg = parseVariables(
-						chat.updatedAddonMessage,
-						{
-							...addon.changes,
-							names: addon.names
-						},
-						chat.locale,
-					);
-
-					bot.api.sendMessage(chat.chatId, msg, {
-						message_thread_id: chat.topicId
-							? Number.parseInt(chat.topicId, 10)
-							: undefined,
-						parse_mode: "HTML",
-						reply_markup: addonUrlButton,
-						link_preview_options: {
-							is_disabled: true,
-						},
+					const webhookClient = new WebhookClient({
+						url: guild.webhook,
 					});
+
+					for (const addon of data) {
+						const curseforgeKeys = Object.keys(addon.changes.curseforge ?? {});
+
+						if (
+							curseforgeKeys.every(
+								(key) => !guild.filteredKeys.includes(key as keyof WSAddonData),
+							)
+						)
+							addon.changes.curseforge = null;
+
+						const modrinthKeys = Object.keys(addon.changes.modrinth ?? {});
+
+						if (
+							modrinthKeys.every(
+								(key) => !guild.filteredKeys.includes(key as keyof WSAddonData),
+							)
+						)
+							addon.changes.modrinth = null;
+
+						if (!addon.changes.curseforge && !addon.changes.modrinth) continue;
+
+						const addonUrlRow = new ActionRowBuilder<ButtonBuilder>();
+
+						if (addon.changes.modrinth) {
+							const button = new ButtonBuilder()
+								.setLabel(await discordBot.localizeStringWithLocale("websocket.messages.openOnModrinth", guild.locale))
+								.setStyle(ButtonStyle.Link)
+								.setEmoji({
+									id: process.env.MODRINTH_EMOJI_ID,
+									name: "modrinth",
+								})
+								.setURL(`https://modrinth.com/mod/${addon.slugs.modrinth}`);
+
+							addonUrlRow.addComponents(button);
+						}
+
+						if (addon.changes.curseforge) {
+							const button = new ButtonBuilder()
+								.setLabel(await discordBot.localizeStringWithLocale("websocket.messages.openOnCurseforge", guild.locale))
+								.setStyle(ButtonStyle.Link)
+								.setEmoji({
+									id: process.env.CURSEFORGE_EMOJI_ID,
+									name: "curseforge",
+								})
+								.setURL(
+									`https://curseforge.com/minecraft/mc-mods/${addon.slugs.curseforge}`,
+								);
+
+							addonUrlRow.addComponents(button);
+						}
+
+						const msg = parseVariables(guild.updatedAddonMessage, {
+							...addon.changes,
+							names: addon.names,
+						});
+
+						const iconUrl = addon.icons.modrinth ?? addon.icons.curseforge;
+
+						const container = createAddonContainer(
+							msg,
+							addonUrlRow,
+							"update",
+							iconUrl,
+						);
+
+						try {
+							await webhookClient.send({
+								components: [container],
+								flags: MessageFlags.IsComponentsV2,
+							});
+						} catch (e) {
+							console.error(
+								`Failed to send addon message to guild "${guild.id}":`,
+								e,
+							);
+						}
+					}
 				}
 			}
 		}

@@ -7,7 +7,7 @@ import type {
 	CommandMiddleware,
 } from "grammy";
 
-export interface Command {
+export interface TelegramCommand {
 	name: string;
 	description?: string;
 	displaySuggestion?: boolean;
@@ -16,7 +16,7 @@ export interface Command {
 	execute: CommandMiddleware<ConversationFlavor<Context>>;
 }
 
-export interface Event<T extends FilterQuery = FilterQuery> {
+export interface TelegramEvent<T extends FilterQuery = FilterQuery> {
 	name: T;
 	execute: Middleware<Filter<ConversationFlavor<Context>, T>>;
 }

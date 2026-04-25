@@ -1,4 +1,4 @@
-import type { Command } from "@/types/handlers";
+import type { TelegramCommand } from "@/types/handlers";
 
 export default {
 	name: "setchannel",
@@ -34,9 +34,9 @@ export default {
 			});
 
 		return await ctx.localizedReply(
-			"commands.setchannel.messages.success",
+			"telegram.commands.setchannel.messages.success",
 			null,
 			newChat.locale,
 		);
 	},
-} satisfies Command;
+} satisfies TelegramCommand;

@@ -1,5 +1,5 @@
-import { getSettingsPanel } from "@/panels/settings";
-import type { Command } from "@/types/handlers";
+import { getSettingsPanel } from "@/telegram/panels/settings";
+import type { TelegramCommand } from "@/types/handlers";
 
 export default {
 	name: "settings",
@@ -9,14 +9,14 @@ export default {
 
 	async execute(ctx) {
 		if (!ctx.dbChat)
-			return ctx.localizedReply("commands.settings.messages.notConfigured");
+			return ctx.localizedReply("telegram.commands.settings.messages.notConfigured");
 
 		const settingsPanel = await getSettingsPanel("home", ctx.locale, {
 			enabled: ctx.dbChat.enabled,
 		});
 
-		ctx.localizedReply("commands.settings.messages.success", {
+		ctx.localizedReply("telegram.commands.settings.messages.success", {
 			reply_markup: settingsPanel,
 		});
 	},
-} satisfies Command;
+} satisfies TelegramCommand;

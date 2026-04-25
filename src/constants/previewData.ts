@@ -1,8 +1,6 @@
-import { parseVariables } from "@/functions/util";
 import type { CreateMessage, UpdateMessage } from "@/types/addonsWS";
-import type { Command } from "@/types/handlers";
 
-const newAddon: CreateMessage["data"][0] = {
+export const newAddon: CreateMessage["data"][0] = {
 	platforms: ["modrinth", "curseforge"],
 	modData: {
 		curseforge: {
@@ -60,7 +58,7 @@ const newAddon: CreateMessage["data"][0] = {
 	},
 };
 
-const updatedAddon: UpdateMessage["data"][0] = {
+export const updatedAddon: UpdateMessage["data"][0] = {
 	names: {
 		curseforge: "Create",
 		modrinth: "Create",
@@ -69,6 +67,12 @@ const updatedAddon: UpdateMessage["data"][0] = {
 	slugs: {
 		curseforge: "create",
 		modrinth: "create",
+	},
+    icons: {
+		modrinth:
+			"https://cdn.modrinth.com/data/LNytGWDc/61d716699bcf1ec42ed4926a9e1c7311be6087e2_96.webp",
+		curseforge:
+			"https://media.forgecdn.net/avatars/1065/184/638598725500886388.png",
 	},
 	changes: {
 		curseforge: {
@@ -197,76 +201,3 @@ const updatedAddon: UpdateMessage["data"][0] = {
 		},
 	},
 };
-
-export default {
-	name: "preview",
-	description: "Display a preview of the new and updated addon messages",
-	displaySuggestion: true,
-	adminOnly: true,
-
-	async execute(ctx) {
-		const args = ctx.msg.text.split(" ");
-		args.shift();
-
-		if (!ctx.dbChat)
-			return ctx.localizedReply("commands.preview.messages.notConfigured");
-
-		if (args[0] === "new") {
-			const msg = ctx.dbChat.newAddonMessage;
-
-			if (args[1] === "raw") {
-				return await ctx.reply(msg, {
-					link_preview_options: {
-						is_disabled: true,
-					},
-				});
-			}
-
-			const parsedMessage = parseVariables(
-				msg,
-				{
-					platforms: newAddon.platforms,
-					...newAddon.modData,
-				},
-				ctx.locale,
-			);
-
-			return await ctx.reply(parsedMessage, {
-				parse_mode: "HTML",
-				link_preview_options: {
-					is_disabled: true,
-				},
-			});
-		}
-
-		if (args[0] === "update") {
-			const msg = ctx.dbChat.updatedAddonMessage;
-
-			if (args[1] === "raw") {
-				return await ctx.reply(msg, {
-					link_preview_options: {
-						is_disabled: true,
-					},
-				});
-			}
-
-			const parsedMessage = parseVariables(
-				msg,
-				{
-					...updatedAddon.changes,
-					names: updatedAddon.names,
-				},
-				ctx.locale,
-			);
-
-			return await ctx.reply(parsedMessage, {
-				parse_mode: "HTML",
-				link_preview_options: {
-					is_disabled: true,
-				},
-			});
-		}
-
-		return ctx.localizedReply("commands.preview.messages.invalidArgs");
-	},
-} satisfies Command;
