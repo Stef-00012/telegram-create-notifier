@@ -28,7 +28,7 @@ process.on("uncaughtException", async (err) => {
 	try {
 		await sendNotification(`${process.env.NTFY_TOPIC}`, {
 			priority: 4, // https://docs.ntfy.sh/publish/#message-priority
-			title: "There was an error in the personal API",
+			title: "There was an error in the create addons notifier bots",
 			message: err.stack,
 		})
 	} catch(e) {
@@ -59,7 +59,7 @@ process.on("unhandledRejection", async (reason, _promise) => {
 	try {
 		await sendNotification(`${process.env.NTFY_TOPIC}`, {
 			priority: 4, // https://docs.ntfy.sh/publish/#message-priority
-			title: "There was an error in the personal API",
+			title: "There was an error in the create addons notifier bots",
 			message: String(reason),
 		});
 	} catch(e) {
