@@ -198,6 +198,24 @@ export const updatedAddon: UpdateMessage["data"][0] = {
 				old: "5.0.0",
 				new: "6.0.0",
 			},
+			authors: {
+				old: [
+					{
+						name: "simibubi",
+						url: "https://www.curseforge.com/members/simibubi",
+					},
+				],
+				new: [
+					{
+						name: "simibubi",
+						url: "https://www.curseforge.com/members/simibubi",
+					},
+					{
+						name: "IThundxr",
+						url: "https://modrinth.com/user/IThundxr"
+					}
+				]
+			}
 		},
 	},
 };

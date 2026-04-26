@@ -13,10 +13,19 @@ import {
 	type WSAddonData,
 	WSEvents,
 } from "@/types/addonsWS";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, WebhookClient } from "discord.js";
+import {
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonStyle,
+	MessageFlags,
+	WebhookClient,
+} from "discord.js";
 import { createAddonContainer } from "./discord";
 
-export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): void {
+export function handleWS(
+	telegramBot?: Bot | null,
+	discordBot?: Client | null,
+): void {
 	const wsUrl = `ws${process.env.CREATE_ADDONS_SECURE === "true" ? "s" : ""}://${process.env.CREATE_ADDONS_BASE_URL}/ws`;
 
 	const socket = new WebSocket(wsUrl);
@@ -121,7 +130,12 @@ export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): 
 
 						if (addon.modData.modrinth) {
 							const button = new ButtonBuilder()
-								.setLabel(await discordBot.localizeStringWithLocale("websocket.messages.openOnModrinth", guild.locale))
+								.setLabel(
+									await discordBot.localizeStringWithLocale(
+										"websocket.messages.openOnModrinth",
+										guild.locale,
+									),
+								)
 								.setStyle(ButtonStyle.Link)
 								.setEmoji({
 									id: process.env.MODRINTH_EMOJI_ID,
@@ -136,7 +150,12 @@ export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): 
 
 						if (addon.modData.curseforge) {
 							const button = new ButtonBuilder()
-								.setLabel(await discordBot.localizeStringWithLocale("websocket.messages.openOnCurseforge", guild.locale))
+								.setLabel(
+									await discordBot.localizeStringWithLocale(
+										"websocket.messages.openOnCurseforge",
+										guild.locale,
+									),
+								)
 								.setStyle(ButtonStyle.Link)
 								.setEmoji({
 									id: process.env.CURSEFORGE_EMOJI_ID,
@@ -150,13 +169,13 @@ export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): 
 						}
 
 						const msg = parseVariables(
-							guild.newAddonMessage, 
+							guild.newAddonMessage,
 							{
 								platforms: addon.platforms,
 								...addon.modData,
-							}, 
-							guild.locale, 
-							true
+							},
+							guild.locale,
+							true,
 						);
 
 						const iconUrl =
@@ -197,22 +216,25 @@ export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): 
 					if (!chat.enabled || !chat.events.includes("update")) continue;
 
 					for (const addon of data) {
-						const curseforgeKeys = Object.keys(addon.changes.curseforge ?? {})
-
-						if (curseforgeKeys.every(
-							(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
-						)) addon.changes.curseforge = null
-
-						const modrinthKeys = Object.keys(addon.changes.modrinth ?? {})
-
-						if (modrinthKeys.every(
-							(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
-						)) addon.changes.modrinth = null
+						const curseforgeKeys = Object.keys(addon.changes.curseforge ?? {});
 
 						if (
-							!addon.changes.curseforge &&
-							!addon.changes.modrinth
-						) continue;
+							curseforgeKeys.every(
+								(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
+							)
+						)
+							addon.changes.curseforge = null;
+
+						const modrinthKeys = Object.keys(addon.changes.modrinth ?? {});
+
+						if (
+							modrinthKeys.every(
+								(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
+							)
+						)
+							addon.changes.modrinth = null;
+
+						if (!addon.changes.curseforge && !addon.changes.modrinth) continue;
 
 						const addonUrlButton = new InlineKeyboard();
 
@@ -238,7 +260,7 @@ export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): 
 							chat.updatedAddonMessage,
 							{
 								...addon.changes,
-								names: addon.names
+								names: addon.names,
 							},
 							chat.locale,
 							false,
@@ -269,26 +291,34 @@ export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): 
 					for (const addon of data) {
 						const curseforgeKeys = Object.keys(addon.changes.curseforge ?? {});
 
-						if (curseforgeKeys.every(
-							(key) => !guild.filteredKeys.includes(key as keyof WSAddonData),
-						)) addon.changes.curseforge = null;
+						if (
+							curseforgeKeys.every(
+								(key) => !guild.filteredKeys.includes(key as keyof WSAddonData),
+							)
+						)
+							addon.changes.curseforge = null;
 
 						const modrinthKeys = Object.keys(addon.changes.modrinth ?? {});
 
-						if (modrinthKeys.every(
-							(key) => !guild.filteredKeys.includes(key as keyof WSAddonData),
-						)) addon.changes.modrinth = null;
-
 						if (
-							!addon.changes.curseforge &&
-							!addon.changes.modrinth
-						) continue;
+							modrinthKeys.every(
+								(key) => !guild.filteredKeys.includes(key as keyof WSAddonData),
+							)
+						)
+							addon.changes.modrinth = null;
+
+						if (!addon.changes.curseforge && !addon.changes.modrinth) continue;
 
 						const addonUrlRow = new ActionRowBuilder<ButtonBuilder>();
 
 						if (addon.slugs.modrinth) {
 							const button = new ButtonBuilder()
-								.setLabel(await discordBot.localizeStringWithLocale("websocket.messages.openOnModrinth", guild.locale))
+								.setLabel(
+									await discordBot.localizeStringWithLocale(
+										"websocket.messages.openOnModrinth",
+										guild.locale,
+									),
+								)
 								.setStyle(ButtonStyle.Link)
 								.setEmoji({
 									id: process.env.MODRINTH_EMOJI_ID,
@@ -301,7 +331,12 @@ export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): 
 
 						if (addon.slugs.curseforge) {
 							const button = new ButtonBuilder()
-								.setLabel(await discordBot.localizeStringWithLocale("websocket.messages.openOnCurseforge", guild.locale))
+								.setLabel(
+									await discordBot.localizeStringWithLocale(
+										"websocket.messages.openOnCurseforge",
+										guild.locale,
+									),
+								)
 								.setStyle(ButtonStyle.Link)
 								.setEmoji({
 									id: process.env.CURSEFORGE_EMOJI_ID,
@@ -319,9 +354,9 @@ export function handleWS(telegramBot?: Bot | null, discordBot?: Client | null): 
 							{
 								...addon.changes,
 								names: addon.names,
-							}, 
+							},
 							guild.locale,
-							true
+							true,
 						);
 
 						const iconUrl = addon.icons.modrinth ?? addon.icons.curseforge;
