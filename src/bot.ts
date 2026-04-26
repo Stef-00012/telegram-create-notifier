@@ -38,6 +38,8 @@ if (!process.env.TELEGRAM_TOKEN && !process.env.DISCORD_TOKEN) {
     throw new Error("Discord or Telegram bot token is not defined in the environment variables.");
 }
 
+import "@/handlers/error";
+
 export const locales: Record<string, Record<string, string>> = {};
 
 const localeFiles = fs

@@ -10,3 +10,4 @@ migrations/
 *.zip
 /__start.sh
 .bun
+/src/errors
