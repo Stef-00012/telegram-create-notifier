@@ -216,23 +216,35 @@ export function handleWS(
 					if (!chat.enabled || !chat.events.includes("update")) continue;
 
 					for (const addon of data) {
-						const curseforgeKeys = Object.keys(addon.changes.curseforge ?? {});
+						// const curseforgeKeys = Object.keys(addon.changes.curseforge ?? {});
 
-						if (
-							curseforgeKeys.every(
-								(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
-							)
-						)
-							addon.changes.curseforge = null;
+						// if (
+						// 	curseforgeKeys.every(
+						// 		(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
+						// 	)
+						// )
+						// 	addon.changes.curseforge = null;
 
-						const modrinthKeys = Object.keys(addon.changes.modrinth ?? {});
+						// const modrinthKeys = Object.keys(addon.changes.modrinth ?? {});
 
-						if (
-							modrinthKeys.every(
-								(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
-							)
-						)
-							addon.changes.modrinth = null;
+						// if (
+						// 	modrinthKeys.every(
+						// 		(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
+						// 	)
+						// )
+						// 	addon.changes.modrinth = null;
+
+						const hasFilteredCurseforge = Object.keys(addon.changes.curseforge ?? {})
+							.some(key => chat.filteredKeys.includes(key as keyof WSAddonData));
+
+						if (!hasFilteredCurseforge) addon.changes.curseforge = null;
+
+						const hasFilteredModrinth = Object.keys(addon.changes.modrinth ?? {})
+							.some(key => chat.filteredKeys.includes(key as keyof WSAddonData));
+
+						if (!hasFilteredModrinth) addon.changes.modrinth = null;
+
+						if (!addon.changes.curseforge && !addon.changes.modrinth) continue;
 
 						if (!addon.changes.curseforge && !addon.changes.modrinth) continue;
 
@@ -289,23 +301,33 @@ export function handleWS(
 					});
 
 					for (const addon of data) {
-						const curseforgeKeys = Object.keys(addon.changes.curseforge ?? {});
+						// const curseforgeKeys = Object.keys(addon.changes.curseforge ?? {});
 
-						if (
-							curseforgeKeys.every(
-								(key) => !guild.filteredKeys.includes(key as keyof WSAddonData),
-							)
-						)
-							addon.changes.curseforge = null;
+						// if (
+						// 	curseforgeKeys.every(
+						// 		(key) => !guild.filteredKeys.includes(key as keyof WSAddonData),
+						// 	)
+						// )
+						// 	addon.changes.curseforge = null;
 
-						const modrinthKeys = Object.keys(addon.changes.modrinth ?? {});
+						// const modrinthKeys = Object.keys(addon.changes.modrinth ?? {});
 
-						if (
-							modrinthKeys.every(
-								(key) => !guild.filteredKeys.includes(key as keyof WSAddonData),
-							)
-						)
-							addon.changes.modrinth = null;
+						// if (
+						// 	modrinthKeys.every(
+						// 		(key) => !guild.filteredKeys.includes(key as keyof WSAddonData),
+						// 	)
+						// )
+						// 	addon.changes.modrinth = null;
+
+						const hasFilteredCurseforge = Object.keys(addon.changes.curseforge ?? {})
+							.some(key => guild.filteredKeys.includes(key as keyof WSAddonData));
+
+						if (!hasFilteredCurseforge) addon.changes.curseforge = null;
+
+						const hasFilteredModrinth = Object.keys(addon.changes.modrinth ?? {})
+							.some(key => guild.filteredKeys.includes(key as keyof WSAddonData));
+
+						if (!hasFilteredModrinth) addon.changes.modrinth = null;
 
 						if (!addon.changes.curseforge && !addon.changes.modrinth) continue;
 
