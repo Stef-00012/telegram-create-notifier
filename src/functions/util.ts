@@ -1,15 +1,26 @@
 import type { BotContext as Context } from "@/bot";
-import { EntitiesParser } from "@qz/telegram-entities-parser";
-import type { Message } from "@qz/telegram-entities-parser/types";
+import { type Message, messageToHtml } from "telegram-html";
 import { localize } from "@/functions/localize";
 import type { WsAddonDataAuthor } from "@/types/addonsWS";
 
 type Result<T> = { removed: T[]; added: T[] };
 
-const entitiesParser = new EntitiesParser();
-
 export function compareArrays<T>(oldArray: T[] = [], newArray: T[] = []): Result<T> {
-	if (!oldArray || !newArray || (oldArray.length <= 0 && newArray.length <= 0)) {
+	if (oldArray && !newArray) {
+		return {
+			removed: oldArray,
+			added: [],
+		};
+	}
+
+	if (!oldArray && newArray) {
+		return {
+			removed: [],
+			added: newArray,
+		};
+	}
+
+	if ((!oldArray && !newArray) || (oldArray.length <= 0 && newArray.length <= 0)) {
 		return {
 			removed: [],
 			added: [],
@@ -64,8 +75,7 @@ export function ownerOnly(ctx: Context) {
 }
 
 export function parse(message: Message) {
-	return entitiesParser
-		.parse({ message })
+	return messageToHtml(message)
 		.replaceAll(
 			'<blockquote class="tg-expandable-blockquote">',
 			'<blockquote expandable class="tg-blockquote">',
@@ -210,8 +220,12 @@ function parseVariablePath<Conditional extends boolean = false>(
 			prevKey = key;
 
 			if (i === parts.length - 1) {
-				return (current as WsAddonDataAuthor[])
+				const authors = (current as WsAddonDataAuthor[])
 					.filter(Boolean)
+
+				if (authors.length <= 0) return localize(locale, "websocket.variables.unknown");
+
+				return authors
 					.map((author) => discord
 						? `[${author.name}](${author.url})`
 						: `<a href="${author.url}">${author.name}</a>`
@@ -226,8 +240,12 @@ function parseVariablePath<Conditional extends boolean = false>(
 			if (key === "authors" || prevKey === "authors") {
 				prevKey = key;
 
-				return (prevObj[key] as WsAddonDataAuthor[])
+				const authors = (prevObj[key] as WsAddonDataAuthor[])
 					.filter(Boolean)
+
+				if (authors.length <= 0) return localize(locale, "websocket.variables.unknown");
+
+				return authors
 					.map((author) => discord
 						? `[${author.name}](${author.url})`
 						: `<a href="${author.url}">${author.name}</a>`
@@ -238,8 +256,12 @@ function parseVariablePath<Conditional extends boolean = false>(
 			if (key === "authorsUrl" || prevKey === "authorsUrl") {
 				prevKey = key;
 
-				return (prevObj[key] as WsAddonDataAuthor[])
+				const authors = (prevObj[key] as WsAddonDataAuthor[])
 					.filter(Boolean)
+
+				if (authors.length <= 0) return localize(locale, "websocket.variables.unknown");
+
+				return authors
 					.map((author) => discord
 						? `[${author.name}](${author.url})`
 						: `<a href="${author.url}">${author.name}</a>`
@@ -271,8 +293,12 @@ function parseVariablePath<Conditional extends boolean = false>(
 				if (prevKey === "authors") {
 					prevKey = key;
 
-					return (comparedArrays[key] as WsAddonDataAuthor[])
+					const authors = (comparedArrays[key] as WsAddonDataAuthor[])
 						.filter(Boolean)
+
+					if (authors.length <= 0) return localize(locale, "websocket.variables.unknown");
+					
+					return authors
 						.map((author) => author.name)
 						.join(", ");
 				}
@@ -280,8 +306,12 @@ function parseVariablePath<Conditional extends boolean = false>(
 				if (prevKey === "authorsUrl") {
 					prevKey = key;
 
-					return (comparedArrays[key] as WsAddonDataAuthor[])
+					const authors = (comparedArrays[key] as WsAddonDataAuthor[])
 						.filter(Boolean)
+
+					if (authors.length <= 0) return localize(locale, "websocket.variables.unknown");
+					
+					return authors
 						.map((author) => discord
 							? `[${author.name}](${author.url})`
 							: `<a href="${author.url}">${author.name}</a>`
@@ -298,8 +328,12 @@ function parseVariablePath<Conditional extends boolean = false>(
 				if (prevKey === "authors") {
 					prevKey = key;
 
-					return (previousItem[key] as WsAddonDataAuthor[])
+					const authors = (previousItem[key] as WsAddonDataAuthor[])
 						.filter(Boolean)
+
+					if (authors.length <= 0) return localize(locale, "websocket.variables.unknown");
+					
+					return authors
 						.map((author) => author.name)
 						.join(", ");
 				}
@@ -307,8 +341,12 @@ function parseVariablePath<Conditional extends boolean = false>(
 				if (prevKey === "authorsUrl") {
 					prevKey = key;
 
-					return (previousItem[key] as WsAddonDataAuthor[])
+					const authors = (previousItem[key] as WsAddonDataAuthor[])
 						.filter(Boolean)
+
+					if (authors.length <= 0) return localize(locale, "websocket.variables.unknown");
+					
+					return authors
 						.map((author) => discord
 							? `[${author.name}](${author.url})`
 							: `<a href="${author.url}">${author.name}</a>`
@@ -364,12 +402,13 @@ function parseVariablePath<Conditional extends boolean = false>(
 		current = prevObj[key];
 	}
 
-	if (!conditional && typeof current !== "string") return null;
+	if (!conditional && typeof current !== "string") return localize(locale, "websocket.variables.unknown");
 
 	if (typeof current === "object" && Object.keys(current || {}).length <= 0)
-		return null;
-	if (Array.isArray(current) && current.length <= 0) return null;
-	if (typeof current === "string" && current.trim().length <= 0) return null;
+		return localize(locale, "websocket.variables.unknown");
+	
+	if (Array.isArray(current) && current.length <= 0) return localize(locale, "websocket.variables.none");
+	if (typeof current === "string" && current.trim().length <= 0) return localize(locale, "websocket.variables.unknown");
 
 	return current as Conditional extends true ? unknown : string | null;
 }

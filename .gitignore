@@ -11,3 +11,4 @@ migrations/
 /__start.sh
 .bun
 /src/errors
+/src/ws_data

@@ -256,16 +256,14 @@ export function handleWS(
 						// 	addon.changes.modrinth = null;
 
 						const hasFilteredCurseforge = Object.keys(addon.changes.curseforge ?? {})
-							.some(key => chat.filteredKeys.includes(key as keyof WSAddonData));
+							.some(key => chat.filteredKeys.includes(key as keyof WSAddonData)) && addon.names.curseforge !== null;
 
 						if (!hasFilteredCurseforge) addon.changes.curseforge = null;
 
 						const hasFilteredModrinth = Object.keys(addon.changes.modrinth ?? {})
-							.some(key => chat.filteredKeys.includes(key as keyof WSAddonData));
+							.some(key => chat.filteredKeys.includes(key as keyof WSAddonData)) && addon.names.modrinth !== null;
 
 						if (!hasFilteredModrinth) addon.changes.modrinth = null;
-
-						if (!addon.changes.curseforge && !addon.changes.modrinth) continue;
 
 						if (!addon.changes.curseforge && !addon.changes.modrinth) continue;
 
@@ -341,12 +339,12 @@ export function handleWS(
 						// 	addon.changes.modrinth = null;
 
 						const hasFilteredCurseforge = Object.keys(addon.changes.curseforge ?? {})
-							.some(key => guild.filteredKeys.includes(key as keyof WSAddonData));
+							.some(key => guild.filteredKeys.includes(key as keyof WSAddonData)) && addon.names.curseforge !== null;
 
 						if (!hasFilteredCurseforge) addon.changes.curseforge = null;
 
 						const hasFilteredModrinth = Object.keys(addon.changes.modrinth ?? {})
-							.some(key => guild.filteredKeys.includes(key as keyof WSAddonData));
+							.some(key => guild.filteredKeys.includes(key as keyof WSAddonData)) && addon.names.modrinth !== null;
 
 						if (!hasFilteredModrinth) addon.changes.modrinth = null;
 

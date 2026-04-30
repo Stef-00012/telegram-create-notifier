@@ -63,6 +63,9 @@
 	"websocket.variables.clientServerSide.optional": "Optional",
 	"websocket.variables.clientServerSide.unsupported": "Unsupported",
 
+	"websocket.variables.unknown": "Unknown",
+	"websocket.variables.none": "None",
+
 	"websocket.messages.discord.addonCreated": "New Addon Created",
 	"websocket.messages.discord.addonUpdated": "Addon Updated",
 
