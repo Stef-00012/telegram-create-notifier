@@ -13,7 +13,7 @@
     "@libsql/client": "^0.15.15",
     "axios": "^1.15.2",
     "discord.js": "^14.26.3",
-    "drizzle-orm": "^0.44.7",
+    "drizzle-orm": "^0.45.2",
     "grammy": "^1.38.3",
     "telegram-html": "^1.1.1"
   },

@@ -21,7 +21,6 @@ import {
 	WebhookClient,
 } from "discord.js";
 import { createAddonContainer } from "./discord";
-import { saveData } from "./saveData";
 
 export function handleWS(
 	telegramBot?: Bot | null,
@@ -68,16 +67,6 @@ export function handleWS(
 
 		if (message.type === WSEvents.CREATE) {
 			const data = message.data;
-
-			saveData(
-				JSON.stringify({
-					type: "create",
-					data,
-					guilds,
-					chats
-				}, null, 4),
-				`create_${data.length}_addons`
-			)
 
 			if (telegramBot) {
 				for (const chat of chats) {
@@ -221,16 +210,6 @@ export function handleWS(
 
 		if (message.type === WSEvents.UPDATE) {
 			const data = message.data;
-
-			saveData(
-				JSON.stringify({
-					type: "update",
-					data,
-					guilds,
-					chats
-				}, null, 4),
-				`update_${data.length}_addons`
-			)
 
 			if (telegramBot) {
 				for (const chat of chats) {

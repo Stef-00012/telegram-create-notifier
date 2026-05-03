@@ -1,5 +1,0 @@
-- [x] {{modrinth/authors}} keeping the variable when empty
-- [x] Some addons being sent as update even if they have no matching value so only name is displayed
-- [ ] Some addons having Modrinth data and not curseforge even tho they only have curseforge
-- [x] Fix Updaged Addons not showing update when old value is null
-- [x] Discord "Open on Modrinth" button has curseforge icon
