@@ -68,12 +68,10 @@ process.on("unhandledRejection", async (reason, _promise) => {
 });
 
 export async function sendNotification(topic: string, data: NtfyMessageBody = {}) {
-	console.log("a")
 	if (!process.env.NTFY_URL || !process.env.NTFY_TOKEN || !process.env.NTFY_TOPIC) return;
-	console.log("b")
 
     try {
-		const r = await axios.post(`${process.env.NTFY_URL}`, {
+		await axios.post(`${process.env.NTFY_URL}`, {
 			topic,
 			...data
 		}, {
@@ -81,8 +79,6 @@ export async function sendNotification(topic: string, data: NtfyMessageBody = {}
 				Authorization: `Bearer ${process.env.NTFY_TOKEN}`,
 			}
 		});
-
-		console.log(r.data)
 	} catch(e) {
 		console.error("Failed to send error notification:", e);
 	}

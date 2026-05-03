@@ -1,5 +1,5 @@
 import { localize } from "@/functions/localize";
-import { InlineKeyboard } from "grammy";
+import { type GrammyError, InlineKeyboard } from "grammy";
 import type { Bot } from "@/bot";
 import WebSocket from "ws";
 import db from "@/db/db";
@@ -14,6 +14,7 @@ import {
 	WSEvents,
 } from "@/types/addonsWS";
 import {
+	type DiscordAPIError,
 	ActionRowBuilder,
 	ButtonBuilder,
 	ButtonStyle,
@@ -21,6 +22,24 @@ import {
 	WebhookClient,
 } from "discord.js";
 import { createAddonContainer } from "./discord";
+import schemas from "@/db/schema";
+import { eq } from "drizzle-orm";
+
+const telegramErrorMessages = [
+	"Forbidden: bot was blocked by the user",
+	"Forbidden: bot was kicked from the group chat",
+	"Forbidden: bot was kicked from the supergroup chat",
+	"Forbidden: bot was kicked from the channel chat",
+	"Forbidden: bot was kicked from the private chat",
+	"Bad Request: message thread not found",
+	"Bad Request: TOPIC_CLOSED",
+];
+
+const discordErrorMessages = [
+	"DiscordAPIError[10015]",
+	"Unknown Webhook",
+	10015,
+];
 
 export function handleWS(
 	telegramBot?: Bot | null,
@@ -69,7 +88,7 @@ export function handleWS(
 			const data = message.data;
 
 			if (telegramBot) {
-				for (const chat of chats) {
+				chat: for (const chat of chats) {
 					if (!chat.enabled || !chat.events.includes("create")) continue;
 
 					for (const addon of data) {
@@ -103,22 +122,44 @@ export function handleWS(
 							false,
 						);
 
-						telegramBot.api.sendMessage(chat.chatId, msg, {
-							message_thread_id: chat.topicId
-								? Number.parseInt(chat.topicId, 10)
-								: undefined,
-							parse_mode: "HTML",
-							reply_markup: addonUrlButton,
-							link_preview_options: {
-								is_disabled: true,
-							},
-						});
+						try {
+							await telegramBot.api.sendMessage(chat.chatId, msg, {
+								message_thread_id: chat.topicId
+									? Number.parseInt(chat.topicId, 10)
+									: undefined,
+								parse_mode: "HTML",
+								reply_markup: addonUrlButton,
+								link_preview_options: {
+									is_disabled: true,
+								},
+							});
+						} catch (_e) {
+							const e = _e as GrammyError;
+
+							if (telegramErrorMessages.includes(e.description)) {
+								await db
+									.delete(schemas.chats)
+									.where(eq(schemas.chats.chatId, chat.chatId))
+									.catch(() => {});
+
+								console.info(
+									`Deleted chat ${chat.chatId} (${chat.chatType}) because the bot was blocked`,
+								);
+
+								continue chat;
+							}
+
+							console.error(
+								`Failed to send addon message to chat "${chat.chatId}":`,
+								e,
+							);
+						}
 					}
 				}
 			}
 
 			if (discordBot) {
-				for (const guild of guilds) {
+				guild: for (const guild of guilds) {
 					if (!guild.enabled || !guild.events.includes("create")) continue;
 
 					const webhookClient = new WebhookClient({
@@ -197,7 +238,26 @@ export function handleWS(
 								components: [container],
 								flags: MessageFlags.IsComponentsV2,
 							});
-						} catch (e) {
+						} catch (_e) {
+							const e = _e as DiscordAPIError;
+
+							if (
+								discordErrorMessages.includes(e.name) ||
+								discordErrorMessages.includes(e.message) ||
+								discordErrorMessages.includes(e.code)
+							) {
+								await db
+									.delete(schemas.guilds)
+									.where(eq(schemas.guilds.id, guild.id))
+									.catch(() => {});
+
+								console.info(
+									`Deleted guild ${guild.id} because the webhook was deleted`,
+								);
+
+								continue guild;
+							}
+
 							console.error(
 								`Failed to send addon message to guild "${guild.id}":`,
 								e,
@@ -212,35 +272,21 @@ export function handleWS(
 			const data = message.data;
 
 			if (telegramBot) {
-				for (const chat of chats) {
+				chat: for (const chat of chats) {
 					if (!chat.enabled || !chat.events.includes("update")) continue;
 
 					for (const addon of data) {
-						// const curseforgeKeys = Object.keys(addon.changes.curseforge ?? {});
-
-						// if (
-						// 	curseforgeKeys.every(
-						// 		(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
-						// 	)
-						// )
-						// 	addon.changes.curseforge = null;
-
-						// const modrinthKeys = Object.keys(addon.changes.modrinth ?? {});
-
-						// if (
-						// 	modrinthKeys.every(
-						// 		(key) => !chat.filteredKeys.includes(key as keyof WSAddonData),
-						// 	)
-						// )
-						// 	addon.changes.modrinth = null;
-
-						const hasFilteredCurseforge = Object.keys(addon.changes.curseforge ?? {})
-							.some(key => chat.filteredKeys.includes(key as keyof WSAddonData)) && addon.names.curseforge !== null;
+						const hasFilteredCurseforge =
+							Object.keys(addon.changes.curseforge ?? {}).some((key) =>
+								chat.filteredKeys.includes(key as keyof WSAddonData),
+							) && addon.names.curseforge !== null;
 
 						if (!hasFilteredCurseforge) addon.changes.curseforge = null;
 
-						const hasFilteredModrinth = Object.keys(addon.changes.modrinth ?? {})
-							.some(key => chat.filteredKeys.includes(key as keyof WSAddonData)) && addon.names.modrinth !== null;
+						const hasFilteredModrinth =
+							Object.keys(addon.changes.modrinth ?? {}).some((key) =>
+								chat.filteredKeys.includes(key as keyof WSAddonData),
+							) && addon.names.modrinth !== null;
 
 						if (!hasFilteredModrinth) addon.changes.modrinth = null;
 
@@ -276,22 +322,44 @@ export function handleWS(
 							false,
 						);
 
-						telegramBot.api.sendMessage(chat.chatId, msg, {
-							message_thread_id: chat.topicId
-								? Number.parseInt(chat.topicId, 10)
-								: undefined,
-							parse_mode: "HTML",
-							reply_markup: addonUrlButton,
-							link_preview_options: {
-								is_disabled: true,
-							},
-						});
+						try {
+							await telegramBot.api.sendMessage(chat.chatId, msg, {
+								message_thread_id: chat.topicId
+									? Number.parseInt(chat.topicId, 10)
+									: undefined,
+								parse_mode: "HTML",
+								reply_markup: addonUrlButton,
+								link_preview_options: {
+									is_disabled: true,
+								},
+							});
+						} catch (_e) {
+							const e = _e as GrammyError;
+
+							if (telegramErrorMessages.includes(e.description)) {
+								await db
+									.delete(schemas.chats)
+									.where(eq(schemas.chats.chatId, chat.chatId))
+									.catch(() => {});
+
+								console.info(
+									`Deleted chat ${chat.chatId} (${chat.chatType}) because the bot was blocked`,
+								);
+
+								continue chat;
+							}
+
+							console.error(
+								`Failed to send addon message to chat "${chat.chatId}":`,
+								e,
+							);
+						}
 					}
 				}
 			}
 
 			if (discordBot) {
-				for (const guild of guilds) {
+				guild: for (const guild of guilds) {
 					if (!guild.enabled || !guild.events.includes("update")) continue;
 
 					const webhookClient = new WebhookClient({
@@ -299,31 +367,17 @@ export function handleWS(
 					});
 
 					for (const addon of data) {
-						// const curseforgeKeys = Object.keys(addon.changes.curseforge ?? {});
-
-						// if (
-						// 	curseforgeKeys.every(
-						// 		(key) => !guild.filteredKeys.includes(key as keyof WSAddonData),
-						// 	)
-						// )
-						// 	addon.changes.curseforge = null;
-
-						// const modrinthKeys = Object.keys(addon.changes.modrinth ?? {});
-
-						// if (
-						// 	modrinthKeys.every(
-						// 		(key) => !guild.filteredKeys.includes(key as keyof WSAddonData),
-						// 	)
-						// )
-						// 	addon.changes.modrinth = null;
-
-						const hasFilteredCurseforge = Object.keys(addon.changes.curseforge ?? {})
-							.some(key => guild.filteredKeys.includes(key as keyof WSAddonData)) && addon.names.curseforge !== null;
+						const hasFilteredCurseforge =
+							Object.keys(addon.changes.curseforge ?? {}).some((key) =>
+								guild.filteredKeys.includes(key as keyof WSAddonData),
+							) && addon.names.curseforge !== null;
 
 						if (!hasFilteredCurseforge) addon.changes.curseforge = null;
 
-						const hasFilteredModrinth = Object.keys(addon.changes.modrinth ?? {})
-							.some(key => guild.filteredKeys.includes(key as keyof WSAddonData)) && addon.names.modrinth !== null;
+						const hasFilteredModrinth =
+							Object.keys(addon.changes.modrinth ?? {}).some((key) =>
+								guild.filteredKeys.includes(key as keyof WSAddonData),
+							) && addon.names.modrinth !== null;
 
 						if (!hasFilteredModrinth) addon.changes.modrinth = null;
 
@@ -396,7 +450,26 @@ export function handleWS(
 								components: [container],
 								flags: MessageFlags.IsComponentsV2,
 							});
-						} catch (e) {
+						} catch (_e) {
+							const e = _e as DiscordAPIError;
+
+							if (
+								discordErrorMessages.includes(e.name) ||
+								discordErrorMessages.includes(e.message) ||
+								discordErrorMessages.includes(e.code)
+							) {
+								await db
+									.delete(schemas.guilds)
+									.where(eq(schemas.guilds.id, guild.id))
+									.catch(() => {});
+
+								console.info(
+									`Deleted guild ${guild.id} because the webhook was deleted`,
+								);
+
+								continue guild;
+							}
+
 							console.error(
 								`Failed to send addon message to guild "${guild.id}":`,
 								e,

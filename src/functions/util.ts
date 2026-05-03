@@ -53,19 +53,23 @@ export function compareArrays<T>(oldArray: T[] = [], newArray: T[] = []): Result
 }
 
 export async function adminOnly(ctx: Context) {
-	const author = await ctx.getAuthor();
+	try {
+		const author = await ctx.getAuthor();
 
-	const ownerIds = process.env.OWNER_IDS?.split(",").map((id) => Number(id)) || [];
+		const ownerIds = process.env.OWNER_IDS?.split(",").map((id) => Number(id)) || [];
 
-	if (ownerIds.includes(ctx.from?.id as number)) return true;
+		if (ownerIds.includes(ctx.from?.id as number)) return true;
 
-	if (
-		ctx.chat?.type !== "private" &&
-		["creator", "administrator"].includes(author.status)
-	)
-		return true;
+		if (
+			ctx.chat?.type !== "private" &&
+			["creator", "administrator"].includes(author.status)
+		)
+			return true;
 
-	return false;
+		return false;
+	} catch(_e) {
+		return false;
+	}
 }
 
 export function ownerOnly(ctx: Context) {

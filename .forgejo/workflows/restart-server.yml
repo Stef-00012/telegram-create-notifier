@@ -1,7 +1,5 @@
 name: Restart Bot Server
 
-# Temporarily disabled until i'm 100% sure it works fine
-
 on:
     push:
         branches:

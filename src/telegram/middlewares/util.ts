@@ -60,8 +60,16 @@ export function utilMiddleware(
 
 		ctx.botStatus = ctx.myChatMember?.new_chat_member.status;
 
-		if (ctx.botStatus !== "kicked" && ctx.botStatus !== "left")
+		if (ctx.botStatus === "kicked" || ctx.botStatus === "left") {
+			await db.delete(schemas.chats).where(
+				eq(schemas.chats.chatId, ctx.chatId?.toString() || "unknown")
+			).catch(() => {});
+
+			ctx.isAdmin = false;
+		} else {
 			ctx.isAdmin = await adminOnly(ctx);
+		}
+
 		ctx.isOwner = ownerOnly(ctx);
 
 		await next();
