@@ -279,14 +279,14 @@ export function handleWS(
 						const hasFilteredCurseforge =
 							Object.keys(addon.changes.curseforge ?? {}).some((key) =>
 								chat.filteredKeys.includes(key as keyof WSAddonData),
-							) && addon.names.curseforge !== null;
+							) && addon.names.curseforge !== null  && addon.slugs.curseforge !== null;
 
 						if (!hasFilteredCurseforge) addon.changes.curseforge = null;
 
 						const hasFilteredModrinth =
 							Object.keys(addon.changes.modrinth ?? {}).some((key) =>
 								chat.filteredKeys.includes(key as keyof WSAddonData),
-							) && addon.names.modrinth !== null;
+							) && addon.names.modrinth !== null && addon.slugs.modrinth !== null;
 
 						if (!hasFilteredModrinth) addon.changes.modrinth = null;
 
@@ -294,7 +294,7 @@ export function handleWS(
 
 						const addonUrlButton = new InlineKeyboard();
 
-						if (addon.slugs.modrinth) {
+						if (addon.slugs.modrinth && addon.changes.modrinth) {
 							addonUrlButton
 								.url(
 									localize(chat.locale, "websocket.messages.openOnModrinth"),
@@ -303,7 +303,7 @@ export function handleWS(
 								.row();
 						}
 
-						if (addon.slugs.curseforge) {
+						if (addon.slugs.curseforge && addon.changes.curseforge) {
 							addonUrlButton
 								.url(
 									localize(chat.locale, "websocket.messages.openOnCurseforge"),
@@ -370,14 +370,14 @@ export function handleWS(
 						const hasFilteredCurseforge =
 							Object.keys(addon.changes.curseforge ?? {}).some((key) =>
 								guild.filteredKeys.includes(key as keyof WSAddonData),
-							) && addon.names.curseforge !== null;
+							) && addon.names.curseforge !== null && addon.slugs.curseforge !== null;
 
 						if (!hasFilteredCurseforge) addon.changes.curseforge = null;
 
 						const hasFilteredModrinth =
 							Object.keys(addon.changes.modrinth ?? {}).some((key) =>
 								guild.filteredKeys.includes(key as keyof WSAddonData),
-							) && addon.names.modrinth !== null;
+							) && addon.names.modrinth !== null && addon.slugs.modrinth !== null;
 
 						if (!hasFilteredModrinth) addon.changes.modrinth = null;
 
@@ -385,7 +385,7 @@ export function handleWS(
 
 						const addonUrlRow = new ActionRowBuilder<ButtonBuilder>();
 
-						if (addon.slugs.modrinth) {
+						if (addon.slugs.modrinth && addon.changes.modrinth) {
 							const button = new ButtonBuilder()
 								.setLabel(
 									await discordBot.localizeStringWithLocale(
@@ -403,7 +403,7 @@ export function handleWS(
 							addonUrlRow.addComponents(button);
 						}
 
-						if (addon.slugs.curseforge) {
+						if (addon.slugs.curseforge && addon.changes.curseforge) {
 							const button = new ButtonBuilder()
 								.setLabel(
 									await discordBot.localizeStringWithLocale(
