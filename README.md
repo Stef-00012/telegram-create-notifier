@@ -9,7 +9,7 @@ The bot can also just be used through [@CreateAddonsNotifierBot](https://t.me/Cr
 > [!IMPORTANT]
 > Requires [Bun](https://bun.sh/)
 
-1. `git clone https://github.com/Stef-00012/telegram-create-notifier`
+1. `git clone https://git.stefdp.com/Stef/create-addon-notifier`
 2. `bun install`
 3. `bun run db:setup`
 4. copy `env.example` to `.env` and fill the values
